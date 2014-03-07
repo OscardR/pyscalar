@@ -1,1 +1,1 @@
-__all__ = ['main', 'cpu']
+__all__ = ['main', 'cpu', 'log']
