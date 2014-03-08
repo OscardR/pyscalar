@@ -3,7 +3,7 @@ Created on 07/03/2014
 @author: Óscar Gómez <oscar.gomez@uji.es>
 """
 
-from instruction import Instruction
+from datastructures.instruction import Instruction
 from app.log import Log
 import re
 

@@ -3,10 +3,9 @@ Created on 07/03/2014
 @author: Óscar Gómez <oscar.gomez@uji.es>
 """
 
-from arch.iw import InstructionWindow, Instruction
-from arch.rob import ReorderBuffer
-from arch.mem import DataMemory, InstructionsMemory
-from datastructures import Programmer
+from iw import InstructionWindow
+from rob import ReorderBuffer
+from mem import DataMemory, InstructionsMemory
 
 class CPU:
     def __init__(self, mem_size=256, iw_size=10, rob_size=10):
@@ -14,7 +13,9 @@ class CPU:
         self.rob = ReorderBuffer(rob_size)
         self.dmem = DataMemory(mem_size)
         self.imem = InstructionsMemory()
-
-    def program(self, f):
-        programmer = Programmer(self.imem)
-        programmer.program(f)
+        self.PC = 0x00
+        
+    def run(self):
+        # Initialize stages
+        # Loop through instructions, then through stages, in reverse
+        pass
