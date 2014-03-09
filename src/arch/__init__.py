@@ -1,1 +1,1 @@
-__all__ = ['cpu','rob','iw','fu','reg','mem','pipeline']
+__all__ = ['cpu','rob','iw','ib','fu','reg','mem','pipeline']

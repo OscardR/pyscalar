@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+#coding:utf8
+
 """
 Created on 07/03/2014
 @author: Óscar Gómez Alcañiz <oscar.gomez@uji.es>
@@ -22,8 +25,8 @@ class InstructionsMemory:
 
 l = Log("DataMemory")        
 class DataMemory:
-    def __init__(self):
-        self.memory = [word for word in xrange(32)]
+    def __init__(self, size=32):
+        self.memory = [word for word in xrange(size)]
 
     def read_byte(self, index):
         l.d("Read: {}".format(index), "Memory")

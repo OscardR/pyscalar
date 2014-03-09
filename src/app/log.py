@@ -51,7 +51,7 @@ class Log:
 		self.msg += color
 
 	def flush(self, message=""):
-		self.msg += message
+		self.msg += str(message)
 		self.msg += NORMAL
 		if self.output: print self.msg
 		self.msg = ""
