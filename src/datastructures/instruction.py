@@ -8,6 +8,10 @@ Created on 07/03/2014
 
 from asm import NOP
 
+class Trap(Exception):
+    def __init__(self, msg):
+        Exception.__init__(self, msg)
+
 class Instruction:
     def __init__(self, codop=NOP, ra=None, rb=None, rc=None):
         self.codop = codop

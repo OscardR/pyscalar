@@ -14,15 +14,15 @@ class InstructionBuffer():
         self.pos = 0
         self.instructions = [None] * self.size
         
-    def insert_instruction(self, ins=Instruction()):
-        self.instructions[self.pos] = ins
+    def insert_instruction(self, inst=Instruction()):
+        self.instructions[self.pos] = inst
         self._update_pos()
         return self.pos
     
     def fetch_instruction(self):
-        ins = self.instructions[self.pos]
+        inst = self.instructions[self.pos]
         self._update_pos()
-        return ins 
+        return inst 
     
     def _update_pos(self):
         self.pos = self.pos + 1

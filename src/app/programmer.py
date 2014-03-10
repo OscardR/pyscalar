@@ -31,6 +31,6 @@ class Programmer:
             except ValueError:
                 # Instrucciones NOP y TRAP
                 op, rc, ra, rb = instruction_line.strip(), None, None, None
-        ins = Instruction(op, ra, rb, rc)
-        self.memory.insert_instruction(ins)
-        l.d("Insert: {ins}".format(**locals()), "Programmer")
+        inst = Instruction(op, ra, rb, rc)
+        self.memory.insert_instruction(inst)
+        l.d("Insert: {inst}".format(**locals()), "Programmer")
