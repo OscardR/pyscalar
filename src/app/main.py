@@ -11,9 +11,9 @@ from log import Log
 
 if __name__ == '__main__':
     l = Log('PyScalar')
-    l.v("Iniciando ejecución", 'GREEN_BOLD', "main")
+    l.v("Iniciando ejecución", "main")
     cpu = CPU()
     prog = Programmer(cpu.imem)
     prog.program('code.asm')
     cpu.run()
-    l.v('Fin de la ejecución', 'main')
+    l.v("Fin de la ejecución", "main")

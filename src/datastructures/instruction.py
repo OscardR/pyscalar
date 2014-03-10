@@ -18,3 +18,17 @@ class Instruction:
         self.ra = ra
         self.rb = rb
         self.rc = rc
+    
+    def __repr__(self):
+        op = self.codop
+        ra = self.ra
+        rb = self.rb
+        rc = self.rc
+        return "Instruction({}, {}, {}, {})".format(op, rc, ra, rb)
+        
+    def __str__(self):
+        op = self.codop
+        ra = self.ra if self.ra else u'\u2014'
+        rb = self.rb if self.rb else u'\u2014'
+        rc = self.rc if self.rc else u'\u2014'
+        return u"{} {} {} {}".format(op, rc, ra, rb).encode('utf-8')

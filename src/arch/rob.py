@@ -7,5 +7,5 @@ Created on 07/03/2014
 """
 
 class ReorderBuffer:
-    def __init__(self):
+    def __init__(self, size=8):
         pass

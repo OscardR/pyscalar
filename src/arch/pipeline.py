@@ -45,13 +45,13 @@ class IF( Stage ):
         self.S = self.cpu.S
 
     def prepare( self ):
-        self.imem = self.cpu.imem   # Instructions Memory
-        self.ib = self.cpu.ib       # Instructions Buffer
+        self.imem = self.cpu.imem  # Instructions Memory
+        self.ib = self.cpu.ib  # Instructions Buffer
 
     def execute( self ):
         # S-Scalar fetches S instructions per cycle
         for _ in range( self.S ):
-            inst = self.imem.fetch_instruction( self.cpu.PC )
+            inst = self.imem.get_instruction_at( self.cpu.PC )
             self.ib.insert_instruction( inst )
             self.cpu.increment_PC()
 
@@ -72,10 +72,14 @@ class ID( Stage ):
         self.ib = self.cpu.ib  # Instructions Buffer
         self.iw = self.cpu.iw  # Instructions Window
         self.rb = self.cpu.rb  # Registers Bank
+        self.S = self.cpu.S  # S-Scalar factor
 
     def execute( self ):
         for _ in range( self.S ):
             inst = self.ib.fetch_instruction()
+
+            if inst == None: continue
+            l.d(inst, "ID")
 
             ( codop, dest ) = inst.codop, inst.rc
 
@@ -107,12 +111,13 @@ class ISS( Stage ):
 
     def prepare( self ):
         self.S = self.cpu.S
+        self.iw = self.cpu.iw
 
     def execute( self ):
         issued = 0
-        while issued < self.S:   # S-scalar processors issue S instructions per cycle 
+        while issued < self.S:  # S-scalar processors issue S instructions per cycle
             inst = self.iw.next_ready_instruction()
-            if inst == None:    # If no instructions are ready, abort stage
+            if inst == None:  # If no instructions are ready, abort stage
                 break
             if inst.codop == asm.TRAP:
                 raise Trap( "End of program" )

@@ -30,6 +30,12 @@ class Registers( dict ):
         super( Registers, self ).__init__( *args, **kw )
         self.itemlist = [ r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, zero ]
         for r in self.itemlist: self[r] = 0x00
+        
+    def __getitem__(self, key):
+        if key not in self.itemlist:
+            return self.itemlist[globals()[key]]
+        else: 
+            return self.itemlist[key]
 
     def __setitem__( self, key, value ):
         if key in self.itemlist:

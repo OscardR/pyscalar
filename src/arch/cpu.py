@@ -7,6 +7,7 @@ Created on 07/03/2014
 """
 
 from iw import InstructionWindow
+from ib import InstructionBuffer
 from rob import ReorderBuffer
 from mem import DataMemory, InstructionsMemory
 from arch.reg import Registers
@@ -21,10 +22,11 @@ l = Log("CPU")
 class CPU:
     def __init__(self, mem_size=256, iw_size=10, rob_size=10, N=8, S=2):
         # Initialize architecture
-        self.iw = InstructionWindow(iw_size)
         self.rob = ReorderBuffer(rob_size)
         self.dmem = DataMemory(mem_size)
         self.imem = InstructionsMemory()
+        self.ib = InstructionBuffer()
+        self.iw = InstructionWindow(iw_size)
         self.rb = Registers()
         self.PC = 0x00
         self.N = N
