@@ -31,4 +31,4 @@ class Instruction:
         ra = self.ra if self.ra else u'\u2014'
         rb = self.regs if self.regs else u'\u2014'
         rc = self.rc if self.rc else u'\u2014'
-        return u"{} {} {} {}".format(op, rc, ra, regs).encode('utf-8')
+        return u"{} {} {} {}".format(op, rc, ra, rb).encode('utf-8')
