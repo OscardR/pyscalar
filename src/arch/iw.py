@@ -7,6 +7,7 @@ Created on 07/03/2014
 """
 
 from datastructures import asm
+from datastructures.instruction import Instruction
 
 class InstructionWindowLine:
     def __init__( self, codop=asm.NOP, dest=None, op1=None, ok1=False, type1=None, op2=None, ok2=False, type2=None ):
@@ -45,7 +46,7 @@ class InstructionWindow:
         for pos in range( len( self.instructions ) ):
             inst_line = self.instructions[pos]
             if inst_line != None and inst_line.ok1 and inst_line.ok2:
-                return inst_line.inst
+                return Instruction( inst_line.codop, inst_line.dest, inst_line.op1, inst_line.op2 )
         return None
 
 if __name__ == '__main__':

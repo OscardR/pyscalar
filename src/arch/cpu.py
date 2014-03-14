@@ -27,7 +27,7 @@ class CPU:
         self.imem = InstructionsMemory()
         self.ib = InstructionBuffer()
         self.iw = InstructionWindow(iw_size)
-        self.rb = Registers()
+        self.regs = Registers()
         self.PC = 0x00
         self.N = N
         self.S = S

@@ -71,7 +71,8 @@ class ID( Stage ):
     def prepare( self ):
         self.ib = self.cpu.ib  # Instructions Buffer
         self.iw = self.cpu.iw  # Instructions Window
-        self.rb = self.cpu.rb  # Registers Bank
+        self.regs = self.cpu.regs  # Registers Bank
+        self.rob = self.cpu.rob # ReOrder Buffer
         self.S = self.cpu.S  # S-Scalar factor
 
     def execute( self ):
@@ -79,15 +80,23 @@ class ID( Stage ):
             inst = self.ib.fetch_instruction()
 
             if inst == None: continue
-            l.d(inst, "ID")
+            l.d( inst, "ID" )
 
             ( codop, dest ) = inst.codop, inst.rc
-
-            op1 = self.rb[inst.ra]  # None if not valid
-            op2 = self.rb[inst.rb]  # None if not valid
-
-            ok1 = self.rb[op1] != None
-            ok2 = self.rb[op2] != None
+            
+            if not self.regs.check_ok(inst.ra):
+                op1 = self.rob.get_last(inst.ra)
+                ok1 = self.rob.is_ok(op1)
+            else:
+                op1 = self.regs[inst.ra]
+                ok1 = True
+            
+            if not self.regs.check_ok(inst.ra):
+                op2 = self.rob.get_last(inst.rb)
+                ok2 = self.rob.is_ok(op2)
+            else:
+                op2 = self.regs[inst.rb]
+                ok2 = True
 
             type1 = 'INM' if ok1 else 'REG'
             type2 = 'INM' if ok2 else 'REG'
@@ -112,10 +121,12 @@ class ISS( Stage ):
     def prepare( self ):
         self.S = self.cpu.S
         self.iw = self.cpu.iw
+        self.fu = self.cpu.fu
 
     def execute( self ):
         issued = 0
-        while issued < self.S:  # S-scalar processors issue S instructions per cycle
+        n = 0
+        while issued < self.S and n < self.iw.size:  # S-scalar processors issue S instructions per cycle
             inst = self.iw.next_ready_instruction()
             if inst == None:  # If no instructions are ready, abort stage
                 break
@@ -135,6 +146,72 @@ class ISS( Stage ):
                 if self.fu[asm.ADD].is_available():
                     self.fu[asm.ADD].feed( inst.op1, inst.op2 )
                     issued += 1
+            n += 1
 
     def finalize( self ):
         pass
+
+class ALU( Stage ):
+    """
+    ALU Stage
+    """
+    def __init__( self, cpu ):
+        Stage.__init__( self, "ALU", cpu )
+
+    def prepare( self ):
+        self.fu = self.cpu.fu
+
+    def execute( self ):
+        for fu in self.fu:
+            fu.step()
+
+    def finalize( self ):
+        pass
+
+class MEM( Stage ):
+    """
+    MEM Stage
+    """
+    def __init__( self, cpu ):
+        Stage.__init__( self, "MEM", cpu )
+
+    def prepare( self ):
+        self.mem = self.cpu.mem
+
+    def execute( self ):
+        for fu in self.fu:
+            if fu.is_completed():
+                inst = fu.inst
+                if inst.codop == asm.SW:
+                    self.mem[fu.get_result()] = self.regs[inst.rc]
+
+    def finalize( self ):
+        pass
+
+class WB( Stage ):
+    """
+    WB Stage
+    """
+    def __init__( self, cpu ):
+        Stage.__init__( self, "WB", cpu )
+
+    def prepare( self ):
+        self.rob = self.cpu.rob
+        self.fu = self.cpu.fu
+
+    def execute( self ):
+        for fu in self.fu:
+            inst = self.fu.inst
+            if inst.codop == asm.LW:
+                self.rob[inst.rc] = self.mem[fu.get_result()]
+
+class COM( Stage ):
+    """
+    COM Stage
+    """
+    def __init__( self, cpu ):
+        Stage.__init__( self, "COM", cpu )
+        
+    def prepare(self):
+        self.regs = self.cpu.regs
+        
