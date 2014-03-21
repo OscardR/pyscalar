@@ -152,7 +152,7 @@ class MEM( Stage ):
     """
     def __init__( self, cpu ):
         Stage.__init__( self, "MEM", cpu )
-        self.mem = self.cpu.mem
+        self.mem = self.cpu.dmem
 
     def execute( self ):
         for fu in self.fu:
@@ -176,7 +176,8 @@ class WB( Stage ):
         for fu in self.fu:
             if fu.is_completed():
                 if fu.op == asm.LW:
-                    self.rob[fu.dest] = self.mem[fu.get_result()]
+                    i = self.rob.get_last_index[fu.dest]
+                    self.rob[i].set_value( self.mem[fu.get_result()] )
 
 class COM( Stage ):
     """
