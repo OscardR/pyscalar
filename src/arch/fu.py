@@ -1,18 +1,56 @@
 #!/usr/bin/env python
-#coding:utf8
+# coding:utf8
 
 """
 Created on 14/03/2014
 @author: "Óscar Gómez Alcañiz <oscar.gomez@uji.es>"
 """
 
-MULT = 0x01
-SUM = 0x02
+from datastructures import asm
 
 class FunctionalUnit():
-    def __init__(self, type=SUM):
-        self.type = type
-        
-    def step(self):
-        pass
-    
+    """
+    Functional Unit
+    ===============
+    Computes operations
+    """
+
+    def __init__( self, op=asm.ADD, cycles=1 ):
+        self.op = op
+        self.available = True
+        self.completed = False
+        self.result = None
+        self.cycles = cycles
+        self.countdown = cycles
+
+    def feed( self, op1, op2 ):
+        if self.available:
+            self.op1 = op1
+            self.op2 = op2
+            self.countdown = self.cycles
+            self.available = False
+
+    def step( self ):
+        self.countdown -= 1
+        if self.countdown == 0:
+            if self.op == asm.MUL:
+                self.result = self.op1 * self.op2
+            elif self.op == asm.ADD:
+                self.result = self.op1 + self.op2
+            elif self.op == asm.SUB:
+                self.result = self.op1 - self.op2
+            elif self.op == asm.DIV:
+                self.result = self.op1 / self.op2
+            self.completed = True
+        return self.countdown
+
+    def is_available( self ):
+        return self.available
+
+    def is_completed( self ):
+        return self.completed
+
+    def get_result( self ):
+        if self.completed:
+            return self.result
+        return None

@@ -21,17 +21,10 @@ class Stage:
         l.v( "Stage %s initialized!" % name, "Stage" )
         self.cpu = cpu
 
-    def prepare( self ):
-        raise NotImplementedError( 
-            "Stage {0} has not implemented 'prepare' method!".format( self.name ) )
-
     def execute( self ):
         raise NotImplementedError( 
             "Stage {0} has not implemented 'execute' method!".format( self.name ) )
 
-    def finalize( self ):
-        raise NotImplementedError( 
-            "Stage {0} has not implemented 'finalize' method!".format( self.name ) )
 
 class IF( Stage ):
     """
@@ -43,8 +36,6 @@ class IF( Stage ):
     def __init__( self, cpu ):
         Stage.__init__( self, "IF", cpu )
         self.S = self.cpu.S
-
-    def prepare( self ):
         self.imem = self.cpu.imem  # Instructions Memory
         self.ib = self.cpu.ib  # Instructions Buffer
 
@@ -55,9 +46,6 @@ class IF( Stage ):
             self.ib.insert_instruction( inst )
             self.cpu.increment_PC()
 
-    def finalize( self ):
-        pass
-
 class ID( Stage ):
     """
     Instruction Decode
@@ -67,12 +55,10 @@ class ID( Stage ):
     """
     def __init__( self, cpu ):
         Stage.__init__( self, "ID", cpu )
-
-    def prepare( self ):
         self.ib = self.cpu.ib  # Instructions Buffer
         self.iw = self.cpu.iw  # Instructions Window
         self.regs = self.cpu.regs  # Registers Bank
-        self.rob = self.cpu.rob # ReOrder Buffer
+        self.rob = self.cpu.rob  # ReOrder Buffer
         self.S = self.cpu.S  # S-Scalar factor
 
     def execute( self ):
@@ -83,17 +69,17 @@ class ID( Stage ):
             l.d( inst, "ID" )
 
             ( codop, dest ) = inst.codop, inst.rc
-            
-            if not self.regs.check_ok(inst.ra):
-                op1 = self.rob.get_last(inst.ra)
-                ok1 = self.rob.is_ok(op1)
+
+            if not self.regs.check_ok( inst.ra ):
+                op1 = self.rob.get_last( inst.ra )
+                ok1 = self.rob.is_ok( op1 )
             else:
                 op1 = self.regs[inst.ra]
                 ok1 = True
-            
-            if not self.regs.check_ok(inst.ra):
-                op2 = self.rob.get_last(inst.rb)
-                ok2 = self.rob.is_ok(op2)
+
+            if not self.regs.check_ok( inst.ra ):
+                op2 = self.rob.get_last( inst.rb )
+                ok2 = self.rob.is_ok( op2 )
             else:
                 op2 = self.regs[inst.rb]
                 ok2 = True
@@ -105,9 +91,6 @@ class ID( Stage ):
             if not success:
                 pass  # TODO: Somehow set flag to repeat decode next cycle
 
-    def finalize( self ):
-        pass
-
 class ISS( Stage ):
     """
     Issue Stage
@@ -117,8 +100,6 @@ class ISS( Stage ):
     """
     def __init__( self, cpu ):
         Stage.__init__( self, "ISS", cpu )
-
-    def prepare( self ):
         self.S = self.cpu.S
         self.iw = self.cpu.iw
         self.fu = self.cpu.fu
@@ -144,74 +125,72 @@ class ISS( Stage ):
                 or inst.codop == asm.SUB \
                 or inst.codop == asm.SUBI:
                 if self.fu[asm.ADD].is_available():
-                    self.fu[asm.ADD].feed( inst.op1, inst.op2 )
+                    self.fu[asm.ADD].feed( inst.op1, inst.op2, inst.dest )
                     issued += 1
             n += 1
-
-    def finalize( self ):
-        pass
 
 class ALU( Stage ):
     """
     ALU Stage
+    =========
+    In this stage all functional units compute a cycle.
     """
     def __init__( self, cpu ):
         Stage.__init__( self, "ALU", cpu )
-
-    def prepare( self ):
         self.fu = self.cpu.fu
 
     def execute( self ):
         for fu in self.fu:
             fu.step()
 
-    def finalize( self ):
-        pass
-
 class MEM( Stage ):
     """
     MEM Stage
+    =========
+    In this stage results from completed functional 
+    units are written to memory. 
     """
     def __init__( self, cpu ):
         Stage.__init__( self, "MEM", cpu )
-
-    def prepare( self ):
         self.mem = self.cpu.mem
 
     def execute( self ):
         for fu in self.fu:
             if fu.is_completed():
-                inst = fu.inst
-                if inst.codop == asm.SW:
-                    self.mem[fu.get_result()] = self.regs[inst.rc]
-
-    def finalize( self ):
-        pass
+                if fu.op == asm.SW:
+                    self.mem[fu.get_result()] = self.regs[fu.dest]
 
 class WB( Stage ):
     """
     WB Stage
+    ========
+    In this stage all results from finished functional units 
+    are written to the reorder buffer.
     """
     def __init__( self, cpu ):
         Stage.__init__( self, "WB", cpu )
-
-    def prepare( self ):
         self.rob = self.cpu.rob
         self.fu = self.cpu.fu
 
     def execute( self ):
         for fu in self.fu:
-            inst = self.fu.inst
-            if inst.codop == asm.LW:
-                self.rob[inst.rc] = self.mem[fu.get_result()]
+            if fu.is_completed():
+                if fu.op == asm.LW:
+                    self.rob[fu.dest] = self.mem[fu.get_result()]
 
 class COM( Stage ):
     """
     COM Stage
+    =========
+    In this stage all correct values from the reorder buffer get written 
+    to their correspondent registers in the register bank.
     """
     def __init__( self, cpu ):
         Stage.__init__( self, "COM", cpu )
-        
-    def prepare(self):
         self.regs = self.cpu.regs
-        
+        self.rob = self.cpu.rob
+
+    def execute( self ):
+        for line in self.rob.lines:
+            if line.ok:
+                self.regs[line.dest] = line.value

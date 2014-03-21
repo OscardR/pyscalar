@@ -12,9 +12,8 @@ from rob import ReorderBuffer
 from mem import DataMemory, InstructionsMemory
 from reg import Registers
 from fu import FunctionalUnit
-from pipeline import IF, ID, ISS
-import reg
-import fu
+from pipeline import IF, ID, ISS, ALU, MEM, WB, COM
+
 from app.log import Log
 from datastructures import asm
 from datastructures.instruction import Trap
@@ -30,7 +29,7 @@ class CPU:
         self.ib = InstructionBuffer()
         self.iw = InstructionWindow( iw_size )
         self.regs = Registers()
-        self.fu = [FunctionalUnit( fu.MULT ), FunctionalUnit( fu.SUM )]
+        self.fu = [FunctionalUnit( asm.MUL ), FunctionalUnit( asm.ADD )]
         self.PC = 0x00
         self.N = N
         self.S = S
@@ -39,21 +38,19 @@ class CPU:
         if_st = IF( self )
         id_st = ID( self )
         iss_st = ISS( self )
-        """
-        exe_st = EXE(self)
-        os_st = OS(self)
-        com_st = COM(self)
-        """
-        self.stages = [if_st, id_st, iss_st]  # , exe_st, os_st, com_st ]
+        alu_st = ALU( self )
+        mem_st = MEM( self )
+        wb_st = WB( self )
+        com_st = COM( self )
+
+        self.stages = [if_st, id_st, iss_st, alu_st, mem_st, wb_st, com_st ]
 
     def run( self ):
         # Loop through instructions, then through stages in reverse
         while True:
             try:
                 for stage in reversed( self.stages ):
-                    stage.prepare()
                     stage.execute()
-                    stage.finalize()
             except Trap:
                 break
 
