@@ -6,6 +6,8 @@ Created on 07/03/2014
 @author: Óscar Gómez <oscar.gomez@uji.es>
 """
 
+from arch import reg
+
 class ROBLine:
     def __init__( self, dest, value, ok, last ):
         self.dest = dest
@@ -15,6 +17,9 @@ class ROBLine:
 
     def set_value( self, value ):
         self.value = value
+
+    def __str__( self ):
+        return "{:>5} | {:>5} | {:>5} | {:>5}".format( self.dest, self.value, self.ok, self.last )
 
 class ReorderBuffer:
     def __init__( self, size=8 ):
@@ -26,14 +31,46 @@ class ReorderBuffer:
     def __getitem__( self, index ):
         return self.lines[index]
 
+    def insert_line( self, dest, value=None, ok=False ):
+        if not self.full:
+            for line in self.lines:
+                if line != None and line.dest == dest:
+                    line.last = False
+            self.lines[self.pos] = ROBLine( dest, value, ok, last=True )
+            if None in self.lines:
+                while self.lines[self.pos] != None:
+                    self.pos += 1
+                    self.pos %= self.size
+            else:
+                self.full = True
+
     def get_last_index( self, reg ):
         for i, line in enumerate( self.lines ):
             if line.dest == reg and line.last:
                 return i
+        return None
 
-    def insert_line( self, dest, value=None, ok=False, last=True ):
-        if not self.full:
-            self.lines[self.pos] = ROBLine( dest, value, ok, last )
-            while self.lines[self.pos] != None:
-                self.pos += 1
-                self.pos %= self.size  # Bucle infinito. OJO!
+    def get_register( self, reg ):
+        for line in self.lines:
+            if line.dest == reg and line.last:
+                if line.ok:
+                    return line.value
+                else:
+                    return False
+        return None
+
+    def __str__( self ):
+        out = "ReorderBuffer [{}]\n=================\n".format( self.size )
+        for i, line in enumerate( self.lines ):
+            out += "{} | {}\n".format( i, line )
+        return out
+
+
+if __name__ == '__main__':
+    rob = ReorderBuffer( 8 )
+    rob.insert_line( reg.r1 )
+    rob.insert_line( reg.r2 )
+    rob.insert_line( reg.r1, 123, ok=True )
+    print rob
+    print rob.get_last_index( reg.r1 )
+    print rob.get_register( reg.r1 )

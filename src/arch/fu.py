@@ -17,6 +17,8 @@ class FunctionalUnit():
 
     def __init__( self, op=asm.ADD, cycles=1 ):
         self.op = op
+        self.op1 = None
+        self.op2 = None
         self.available = True
         self.completed = False
         self.result = None
@@ -32,7 +34,9 @@ class FunctionalUnit():
 
     def step( self ):
         self.countdown -= 1
-        if self.countdown == 0:
+        if self.countdown == 0 and \
+            self.op1 != None and \
+            self.op2 != None:
             if self.op == asm.MUL:
                 self.result = self.op1 * self.op2
             elif self.op == asm.ADD:

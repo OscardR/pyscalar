@@ -70,6 +70,7 @@ class ID( Stage ):
 
             ( codop, dest ) = inst.codop, inst.rc
 
+            # TODO: Change logic in order to use ROB to read register values
             if not self.regs.check_ok( inst.ra ):
                 op1 = self.rob.get_last( inst.ra )
                 ok1 = self.rob.is_ok( op1 )
@@ -153,6 +154,7 @@ class MEM( Stage ):
     def __init__( self, cpu ):
         Stage.__init__( self, "MEM", cpu )
         self.mem = self.cpu.dmem
+        self.fu = self.cpu.fu
 
     def execute( self ):
         for fu in self.fu:
@@ -193,5 +195,5 @@ class COM( Stage ):
 
     def execute( self ):
         for line in self.rob.lines:
-            if line.ok:
+            if line != None and line.ok:
                 self.regs[line.dest] = line.value
