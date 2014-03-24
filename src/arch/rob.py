@@ -8,18 +8,23 @@ Created on 07/03/2014
 
 from arch import reg
 
+ISSUED = 'i'
+EXECUTING = 'x'
+FINISHED = 'f'
+
 class ROBLine:
     def __init__( self, dest, value, ok, last ):
         self.dest = dest
         self.value = value
         self.ok = ok
         self.last = last
+        self.status = ISSUED
 
     def set_value( self, value ):
         self.value = value
 
     def __str__( self ):
-        return "{:>5} | {:>5} | {:>5} | {:>5}".format( self.dest, self.value, self.ok, self.last )
+        return "{:>5} | {:>5} | {:>5} | {:>5} | {:1}".format( self.dest, self.value, self.ok, self.last, self.status )
 
 class ReorderBuffer:
     def __init__( self, size=8 ):
@@ -58,6 +63,13 @@ class ReorderBuffer:
                 else:
                     return False
         return None
+
+    def get_finished( self ):
+        finished = []
+        for line in self.lines:
+            if line.status == FINISHED:
+                finished.append( line )
+        return finished
 
     def __str__( self ):
         out = "ReorderBuffer [{}]\n=================\n".format( self.size )

@@ -10,7 +10,7 @@ from asm import NOP
 from arch import reg
 
 class Trap( Exception ):
-    def __init__( self, msg ):
+    def __init__( self, msg="Trap instruction" ):
         Exception.__init__( self, msg )
 
 class Instruction:

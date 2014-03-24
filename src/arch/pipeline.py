@@ -71,7 +71,7 @@ class ID( Stage ):
             ( codop, dest ) = inst.codop, inst.rc
 
             # TODO: Change logic in order to use ROB to read register values
-            if codop != asm.TRAP:
+            if codop not in [asm.TRAP, asm.NOP]:
                 regs = [dest, inst.ra]
                 if codop not in [asm.MULI, asm.ADDI, asm.DIVI, asm.SUBI]:
                     regs.append( inst.rb )
@@ -93,7 +93,8 @@ class ID( Stage ):
                 if not success:
                     pass  # TODO: Somehow set flag to repeat decode next cycle
             else:  # TODO: Do something about TRAP instructions
-                exit()
+                if codop == asm.TRAP:
+                    raise Trap()
 
 class ISS( Stage ):
     """
