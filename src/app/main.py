@@ -17,19 +17,23 @@ from log import Log
 render = render_jinja( '.', encoding='utf-8' )
 urls = ( '/', 'Index' )
 app = web.application( urls, globals() )
+l = Log( 'PyScalar' )
+
+def raw_app():
+    l.v( "Iniciando ejecución", "main" )
+    cpu = CPU()
+    prog = Programmer( cpu.imem )
+    prog.program( 'code.asm' )
+    cpu.run()
+    l.v( "Fin de la ejecución", "main" )
 
 class Index:
     def GET( self ):
-        l = Log( 'PyScalar' )
-        l.v( "Iniciando ejecución", "main" )
-        cpu = CPU()
-        prog = Programmer( cpu.imem )
-        prog.program( 'code.asm' )
-        cpu.run()
-        l.v( "Fin de la ejecución", "main" )
+        raw_app()
         return render.main( title='PyScalar' )
 
 application = app.wsgifunc()
 
 if __name__ == '__main__':
-    app.run()
+    raw_app()
+    # app.run()

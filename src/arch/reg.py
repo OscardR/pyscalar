@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#coding:utf8
+# coding:utf8
 
 """
 Created on 09/03/2014
@@ -25,23 +25,32 @@ r14 = 0x0E
 r15 = 0x0F
 zero = 0xFF
 
+def name( reg ):
+    l = None
+    for l in globals():
+        if globals()[l] == reg and l != 'reg': return l
+    return "{}?".format( reg )
+
+class RegisterNotFoundException( Exception ):
+    def __init__( self, reg ):
+        super( RegisterNotFoundException, self ).__init__( "Register not found: [{}]".format( reg ) )
+
 class Registers( dict ):
     def __init__( self, *args, **kw ):
         super( Registers, self ).__init__( *args, **kw )
         self.itemlist = [ r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, zero ]
-        for r in self.itemlist: self[r] = (0x00, True)
-        
-    def __getitem__(self, key):
+        for r in self.itemlist: self[r] = 0
+
+    def __getitem__( self, key ):
         if key not in self.itemlist:
-            return self.itemlist[globals()[key]]
-        else: 
-            return self.itemlist[key]
+            raise RegisterNotFoundException( key )
+        return super( Registers, self ).__getitem__( key )
 
     def __setitem__( self, key, value ):
-        if key in self.itemlist:
-            super( Registers, self ).__setitem__( key, value )
-        else:
+        if not key in self.itemlist:
             raise Exception( "New registers cannot be added" )
+        super( Registers, self ).__setitem__( key, value )
+
     def __iter__( self ):
         return iter( self.itemlist )
 
@@ -53,3 +62,23 @@ class Registers( dict ):
 
     def itervalues( self ):
         return ( self[key][0] for key in self )
+
+    def check_ok( self, reg ):
+        return self[reg] != None
+
+    def invalidate( self, reg ):
+        if not reg in self.itemlist:
+            raise RegisterNotFoundException( reg )
+        self[reg] = None
+
+if __name__ == '__main__':
+    reg = Registers()
+    reg[r10] = 10
+    print reg
+    print reg.check_ok( r0 )
+    reg.invalidate( r0 )
+    print reg
+    print reg[r0]
+    print reg.check_ok( r0 )
+    print name( r5 )
+    print reg[1000]

@@ -71,26 +71,29 @@ class ID( Stage ):
             ( codop, dest ) = inst.codop, inst.rc
 
             # TODO: Change logic in order to use ROB to read register values
-            if not self.regs.check_ok( inst.ra ):
-                op1 = self.rob.get_last( inst.ra )
-                ok1 = self.rob.is_ok( op1 )
-            else:
-                op1 = self.regs[inst.ra]
-                ok1 = True
+            if codop != asm.TRAP:
+                regs = [dest, inst.ra]
+                if codop not in [asm.MULI, asm.ADDI, asm.DIVI, asm.SUBI]:
+                    regs.append( inst.rb )
 
-            if not self.regs.check_ok( inst.ra ):
-                op2 = self.rob.get_last( inst.rb )
-                ok2 = self.rob.is_ok( op2 )
-            else:
-                op2 = self.regs[inst.rb]
-                ok2 = True
+                for reg in regs:
+                    self.rob.insert_line( dest=reg, value=self.regs[reg], ok=self.regs.check_ok( reg ) )
 
-            type1 = 'INM' if ok1 else 'REG'
-            type2 = 'INM' if ok2 else 'REG'
+                op1 = self.rob.get_last_index( inst.ra )
+                ok1 = self.rob[ op1 ].ok
 
-            success = self.iw.insert_instruction( codop, dest, op1, ok1, type1, op2, ok2, type2 )
-            if not success:
-                pass  # TODO: Somehow set flag to repeat decode next cycle
+                if codop not in [asm.MULI, asm.ADDI, asm.DIVI, asm.SUBI]:
+                    op2 = self.rob.get_last_index( inst.rb )
+                    ok2 = self.rob[ op2 ].ok
+
+                type1 = 'INM' if ok1 else 'REG'
+                type2 = 'INM' if ok2 else 'REG'
+
+                success = self.iw.insert_instruction( codop, dest, op1, ok1, type1, op2, ok2, type2 )
+                if not success:
+                    pass  # TODO: Somehow set flag to repeat decode next cycle
+            else:  # TODO: Do something about TRAP instructions
+                exit()
 
 class ISS( Stage ):
     """
@@ -126,7 +129,7 @@ class ISS( Stage ):
                 or inst.codop == asm.SUB \
                 or inst.codop == asm.SUBI:
                 if self.fu[asm.ADD].is_available():
-                    self.fu[asm.ADD].feed( inst.op1, inst.op2, inst.dest )
+                    self.fu[asm.ADD].feed( inst.ra, inst.rb )
                     issued += 1
             n += 1
 
@@ -141,7 +144,8 @@ class ALU( Stage ):
         self.fu = self.cpu.fu
 
     def execute( self ):
-        for fu in self.fu:
+        for t in self.fu:
+            fu = self.fu[t]
             fu.step()
 
 class MEM( Stage ):
@@ -157,7 +161,8 @@ class MEM( Stage ):
         self.fu = self.cpu.fu
 
     def execute( self ):
-        for fu in self.fu:
+        for t in self.fu:
+            fu = self.fu[t]
             if fu.is_completed():
                 if fu.op == asm.SW:
                     self.mem[fu.get_result()] = self.regs[fu.dest]
@@ -175,7 +180,8 @@ class WB( Stage ):
         self.fu = self.cpu.fu
 
     def execute( self ):
-        for fu in self.fu:
+        for t in self.fu:
+            fu = self.fu[t]
             if fu.is_completed():
                 if fu.op == asm.LW:
                     i = self.rob.get_last_index[fu.dest]

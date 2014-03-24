@@ -29,7 +29,9 @@ class CPU:
         self.ib = InstructionBuffer()
         self.iw = InstructionWindow( iw_size )
         self.regs = Registers()
-        self.fu = [FunctionalUnit( asm.MUL ), FunctionalUnit( asm.ADD )]
+        self.fu = {
+            asm.MUL : FunctionalUnit( asm.MUL ),
+            asm.ADD : FunctionalUnit( asm.ADD ) }
         self.PC = 0x00
         self.N = N
         self.S = S
