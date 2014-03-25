@@ -29,7 +29,7 @@ def name( reg ):
     l = None
     for l in globals():
         if globals()[l] == reg and l != 'reg': return l
-    return "{}?".format( reg )
+    return "[{}]".format( reg )
 
 class RegisterNotFoundException( Exception ):
     def __init__( self, reg ):

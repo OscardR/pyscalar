@@ -25,6 +25,11 @@ def raw_app():
     prog = Programmer( cpu.imem )
     prog.program( 'code.asm' )
     cpu.run()
+    print cpu.imem
+    print cpu.dmem
+    print cpu.iw
+    print cpu.regs
+    print cpu.rob
     l.v( "Fin de la ejecución", "main" )
 
 class Index:

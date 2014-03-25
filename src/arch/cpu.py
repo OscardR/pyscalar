@@ -33,6 +33,8 @@ class CPU:
             asm.MUL : FunctionalUnit( asm.MUL ),
             asm.ADD : FunctionalUnit( asm.ADD ) }
         self.PC = 0x00
+        
+        # CPU parameters
         self.N = N
         self.S = S
 
@@ -60,9 +62,9 @@ class CPU:
         self.PC += 1
 
 if __name__ == '__main__':
-    l.v( "Test Init", "main" )
+    l.v( "Test Init", "CPU" )
     cpu = CPU()
     l.d( cpu.regs, "Registers" )
     l.d( cpu.imem, "InstructionMemory" )
     l.d( cpu.dmem, "DataMemory" )
-    l.v( "Test End", "main" )
+    l.v( "Test End", "CPU" )

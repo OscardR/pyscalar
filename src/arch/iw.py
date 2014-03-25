@@ -8,6 +8,7 @@ Created on 07/03/2014
 
 from datastructures import asm
 from datastructures.instruction import Instruction
+import app.log as log
 
 class InstructionWindowLine:
     def __init__( self, codop=asm.NOP, dest=None, op1=None, ok1=False, type1=None, op2=None, ok2=False, type2=None ):
@@ -48,6 +49,12 @@ class InstructionWindow:
             if inst_line != None and inst_line.ok1 and inst_line.ok2:
                 return Instruction( inst_line.codop, inst_line.dest, inst_line.op1, inst_line.op2 )
         return None
+
+    def __str__( self ):
+        out = "{}InstructionWindow:{}\n".format( log.RED_BOLD, log.NORMAL )
+        for il in self.instructions:
+            out += "{}\n".format( str( il ) )
+        return out
 
 if __name__ == '__main__':
     iwl = InstructionWindowLine()
