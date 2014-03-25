@@ -7,6 +7,7 @@ Created on 07/03/2014
 """
 
 from arch import reg
+from app import log
 
 ISSUED = 'i'
 EXECUTING = 'x'
@@ -72,9 +73,9 @@ class ReorderBuffer:
         return finished
 
     def __str__( self ):
-        out = "ReorderBuffer [{}]\n=================\n".format( self.size )
+        out = log.make_title( "ReorderBuffer [{}]".format( self.size ) )
         for i, line in enumerate( self.lines ):
-            out += "{} | {}\n".format( i, line )
+            out += "[ {:>02} ] {}\n".format( i, line )
         return out
 
 

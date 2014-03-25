@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#coding:utf8
+# coding:utf8
 
 """
 Created on 07/03/2014
@@ -22,3 +22,9 @@ NAND = 'nand'
 TRAP = 'trap'
 LW = 'lw'
 SW = 'sw'
+
+def name( codop ):
+    l = None
+    for l in globals():
+        if globals()[l] == codop and l != 'codop': return l
+    return "{}".format( codop )

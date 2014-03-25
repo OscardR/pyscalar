@@ -5,8 +5,7 @@
 Created on 07/03/2014
 @author: Óscar Gómez Alcañiz <oscar.gomez@uji.es>
 """
-import app.log
-from app.log import Log
+import app.log as log
 from datastructures.instruction import Instruction
 
 class InstructionsMemory:
@@ -21,9 +20,14 @@ class InstructionsMemory:
             return self.instructions[pc]
         except IndexError:
             return Instruction()
-            # raise EndOfProgram("No more instructions.")
 
-l = Log( "DataMemory" )
+    def __str__( self ):
+        out = log.make_title( "InstructionMemory" )
+        for i, inst in enumerate( self.instructions ):
+            out += "[ {:#04x} ] {}\n".format( i, inst )
+        return out
+
+l = log.Log( "DataMemory" )
 class DataMemory:
     def __init__( self, size=32 ):
         self.memory = [word for word in xrange( size )]
@@ -37,8 +41,8 @@ class DataMemory:
         self.memory[index] = data
 
     def __str__( self ):
-        out = "{}Memory:{}\n".format( app.log.RED_BOLD, app.log.NORMAL )
+        out = log.make_title( "DataMemory" )
         for i, w in enumerate( self.memory ):
-            out += "{:#04X}=[ {:#04x} ] ".format( i, w )
-            if i % 8 == 7: out += "\n"
+            out += "[ {:#04x} ]: {:#06x} ".format( i, w )
+            if i % 4 == 3: out += "\n"
         return out

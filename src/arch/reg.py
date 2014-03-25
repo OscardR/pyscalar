@@ -6,6 +6,8 @@ Created on 09/03/2014
 @author: Óscar Gómez Alcañiz <oscar.gomez@uji.es>
 """
 
+import app.log as log
+
 # Registers name definitions
 r0 = 0x00
 r1 = 0x01
@@ -29,7 +31,7 @@ def name( reg ):
     l = None
     for l in globals():
         if globals()[l] == reg and l != 'reg': return l
-    return "[{}]".format( reg )
+    return "{}".format( reg )
 
 class RegisterNotFoundException( Exception ):
     def __init__( self, reg ):
@@ -70,6 +72,13 @@ class Registers( dict ):
         if not reg in self.itemlist:
             raise RegisterNotFoundException( reg )
         self[reg] = None
+
+    def __str__( self ):
+        out = log.make_title( "Registers" )
+        for reg in self.itemlist:
+            out += "[ {:>4} ]: {:#06x} ".format( name( reg ), self[reg] )
+            if reg % 4 == 3: out += "\n"
+        return out
 
 if __name__ == '__main__':
     reg = Registers()
