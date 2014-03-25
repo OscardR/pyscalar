@@ -31,7 +31,7 @@ class IF( Stage ):
     Instruction Fetch
     =================
     Instructions are captured from the instructions memory and inserted onto
-    the instructions buffer, at a rate of S instructions per cycle
+    the instructions buffer, at a rate of 'S' instructions per cycle
     """
     def __init__( self, cpu ):
         Stage.__init__( self, "IF", cpu )
@@ -44,6 +44,7 @@ class IF( Stage ):
         for _ in range( self.S ):
             inst = self.imem.get_instruction_at( self.cpu.PC )
             self.ib.insert_instruction( inst )
+            l.d( "[ PC{:>2} ] {}".format( self.cpu.PC, inst ), "IF" )
             self.cpu.increment_PC()
 
 class ID( Stage ):
@@ -114,10 +115,18 @@ class ISS( Stage ):
         n = 0
         while issued < self.S and n < self.iw.size:  # S-scalar processors issue S instructions per cycle
             inst = self.iw.next_ready_instruction()
+            l.d( "[ +{} ] {}".format( issued, inst ), "ISS" )
             if inst == None:  # If no instructions are ready, abort stage
                 break
+
+            # Discard if it's a TRAP instruction
+
             if inst.codop == asm.TRAP:
                 raise Trap( "End of program" )
+
+            # If it's a multiplication or division,
+            # push to the multiplication functional units
+
             elif inst.codop == asm.MUL \
                 or inst.codop == asm.MULI \
                 or inst.codop == asm.DIV \
@@ -125,6 +134,9 @@ class ISS( Stage ):
                 if self.fu[asm.MUL].is_available():
                     self.fu[asm.MUL].feed( inst.op1, inst.op2 )
                     issued += 1
+
+            # Same for addition and substraction
+
             elif inst.codop == asm.ADD \
                 or inst.codop == asm.ADDI \
                 or inst.codop == asm.SUB \
@@ -147,7 +159,8 @@ class ALU( Stage ):
     def execute( self ):
         for t in self.fu:
             fu = self.fu[t]
-            fu.step()
+            step = fu.step()
+            l.d( "[ {} ] step: {}".format( fu.op, step ), "ALU" )
 
 class MEM( Stage ):
     """

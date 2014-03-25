@@ -33,19 +33,19 @@ class FunctionalUnit():
             self.available = False
 
     def step( self ):
-        self.countdown -= 1
-        if self.countdown == 0 and \
-            self.op1 != None and \
+        if self.op1 != None and \
             self.op2 != None:
-            if self.op == asm.MUL:
-                self.result = self.op1 * self.op2
-            elif self.op == asm.ADD:
-                self.result = self.op1 + self.op2
-            elif self.op == asm.SUB:
-                self.result = self.op1 - self.op2
-            elif self.op == asm.DIV:
-                self.result = self.op1 / self.op2
-            self.completed = True
+            self.countdown -= 1
+            if self.countdown == 0:
+                if self.op == asm.MUL:
+                    self.result = self.op1 * self.op2
+                elif self.op == asm.ADD:
+                    self.result = self.op1 + self.op2
+                elif self.op == asm.SUB:
+                    self.result = self.op1 - self.op2
+                elif self.op == asm.DIV:
+                    self.result = self.op1 / self.op2
+                self.completed = True
         return self.countdown
 
     def is_available( self ):

@@ -9,6 +9,7 @@ Created on 07/03/2014
 from arch import reg
 from app import log
 
+# Flags to track the state of the instruction
 ISSUED = 'i'
 EXECUTING = 'x'
 FINISHED = 'f'
