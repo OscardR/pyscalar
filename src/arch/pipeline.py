@@ -142,7 +142,7 @@ class ISS( Stage ):
                 or inst.codop == asm.SUB \
                 or inst.codop == asm.SUBI:
                 if self.fu[asm.ADD].is_available():
-                    self.fu[asm.ADD].feed( inst.ra, inst.rb )
+                    self.fu[asm.ADD].feed( inst.ra, inst.rb, inst.rc )
                     issued += 1
             n += 1
 
@@ -160,7 +160,7 @@ class ALU( Stage ):
         for t in self.fu:
             fu = self.fu[t]
             step = fu.step()
-            l.d( "[ {} ] step: {}".format( fu.op, step ), "ALU" )
+            l.d( "[ {} ] step: {}".format( fu, step ), "ALU" )
 
 class MEM( Stage ):
     """
@@ -180,6 +180,7 @@ class MEM( Stage ):
             if fu.is_completed():
                 if fu.op == asm.SW:
                     self.mem[fu.get_result()] = self.regs[fu.dest]
+                l.d( "[ {} ] completed".format( fu ), "ALU" )
 
 class WB( Stage ):
     """

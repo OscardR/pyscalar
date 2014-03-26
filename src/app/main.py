@@ -27,14 +27,15 @@ def raw_app():
     prog = Programmer( cpu.imem )
     prog.program( 'code.asm' )
     cpu.run()
-    
+
     # Debug architecture status
     print cpu.imem
     print cpu.dmem
+    print cpu.ib
     print cpu.iw
     print cpu.regs
     print cpu.rob
-    
+
     l.v( "Fin de la ejecución", "main" )
 
 class Index:

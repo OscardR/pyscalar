@@ -22,7 +22,7 @@ class InstructionWindowLine:
         self.type2 = type2
 
     def __str__( self ):
-        return "{:>6} | {:>4} | {:>4} | {:>1} | {:>4} | {:>1}".format( 
+        return "{:>6} | {:>4} | {:>4} | {:>3} | {:>4} | {:>3}".format( 
             self.codop,
             self.dest if self.dest != None else '—',
             self.op1 if self.op1 != None else '—',
@@ -52,6 +52,10 @@ class InstructionWindow:
 
     def __str__( self ):
         out = log.make_title( "InstructionWindow" )
+        out += "[ {:>6} | {:>4} | {:>4} | {:>3} | {:>4} | {:>3} ]\n"\
+            .format( "codop", "dest", "op1", "ok1", "op2", "ok2" )
+        out += "[{:>6}|{:>4}|{:>4}|{:>3}|{:>4}|{:>3}]\n"\
+            .format( "--------", "------", "------", "-----", "------", "-----" )
         for il in self.instructions:
             if il != None:
                 out += "[ {} ]\n".format( str( il ) )
