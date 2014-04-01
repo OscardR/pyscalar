@@ -32,7 +32,7 @@ class Instruction:
         ra = reg.name( self.ra ) if self.ra != None else u'\u2014'
         rb = reg.name( self.rb ) if self.rb != None else u'\u2014'
         rc = reg.name( self.rc ) if self.rc != None else u'\u2014'
-        return u"{} {} {} {}".format( op, rc, ra, rb ).encode( 'utf-8' )
+        return u"{:<4}\t{:<4}\t{:<4}\t{:>4}".format( op, rc, ra, rb ).encode( 'utf-8' )
 
 if __name__ == '__main__':
     i = Instruction( asm.ADDI, reg.r1, 1000, reg.r0 )

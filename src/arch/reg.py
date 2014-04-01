@@ -76,7 +76,11 @@ class Registers( dict ):
     def __str__( self ):
         out = log.make_title( "Registers" )
         for reg in self.itemlist:
-            out += "[ {:>4} ]: {:#06x} ".format( name( reg ), self[reg] )
+            if self[reg] != None:
+                fmt_str = "[ {:>4} ]: {:#06x} "
+            else:
+                fmt_str = "[ {:>4} ]: {:>6} "
+            out += fmt_str.format( name( reg ), self[reg] )
             if reg % 4 == 3: out += "\n"
         return out
 

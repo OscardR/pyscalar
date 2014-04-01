@@ -15,7 +15,7 @@ class InstructionsMemory:
     def insert_instruction( self, instruction ):
         self.instructions.append( instruction )
 
-    def get_instruction_at( self, pc ):
+    def fetch_instruction( self, pc ):
         try:
             return self.instructions[pc]
         except IndexError:

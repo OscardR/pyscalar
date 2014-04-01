@@ -58,6 +58,7 @@ class FunctionalUnit():
 
     def get_result( self ):
         if self.completed:
+            self.available = True
             return self.result
         return None
 
