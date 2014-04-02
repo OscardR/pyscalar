@@ -33,6 +33,7 @@ class FunctionalUnit():
             self.dest = dest
             self.countdown = self.cycles
             self.available = False
+            self.completed = False
 
     def step( self ):
         if self.op1 != None and \
@@ -49,6 +50,9 @@ class FunctionalUnit():
                     self.result = self.op1 / self.op2
                 self.completed = True
         return self.countdown
+
+    def is_empty( self ):
+        return self.available and not self.completed
 
     def is_available( self ):
         return self.available

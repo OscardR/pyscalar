@@ -89,9 +89,9 @@ class ReorderBuffer:
         return False
 
     def get_last_index( self, reg ):
-        for i, line in enumerate( self.lines ):
+        for line in self.lines:
             if line.dest == reg and line.last:
-                return i
+                return line.index
         return None
 
     def get_register( self, reg ):
@@ -112,7 +112,8 @@ class ReorderBuffer:
         count = 0
 
         # Get all finished lines from the tail
-        while self.lines[self.tail].flag == FINISHED:
+        while self.lines[self.tail] != None \
+            and self.lines[self.tail].flag == FINISHED:
             finished.append( self.lines[self.tail] )
             self.tail += 1
             self.tail %= self.size

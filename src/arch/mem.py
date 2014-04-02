@@ -19,7 +19,7 @@ class InstructionsMemory:
         try:
             return self.instructions[pc]
         except IndexError:
-            return Instruction()
+            return None
 
     def __str__( self ):
         out = log.make_title( "InstructionMemory" )

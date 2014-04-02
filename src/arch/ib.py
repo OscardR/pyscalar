@@ -16,6 +16,7 @@ class InstructionBuffer():
         self.size = n
         self.ins_pos = 0
         self.retr_pos = 0
+        self.inst_count = 0
         self.instructions = [None] * self.size
 
     def queue_instruction( self, inst=Instruction() ):
@@ -27,7 +28,9 @@ class InstructionBuffer():
 
     def fetch_instruction( self ):
         inst = self.instructions[self.retr_pos]
-        return inst
+        n_inst = self.inst_count
+        self.inst_count += 1
+        return n_inst, inst
 
     def flush_instruction( self ):
         self.instructions[self.retr_pos] = None
@@ -61,3 +64,4 @@ if __name__ == '__main__':
     print ib
     for i in range( 6 ):
         print ib.fetch_instruction()
+        ib.flush_instruction()
