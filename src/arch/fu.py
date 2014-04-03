@@ -40,7 +40,7 @@ class FunctionalUnit():
             self.op2 != None and not self.completed:
             self.countdown -= 1
             if self.countdown == 0:
-                if self.op == asm.MUL:
+                if self.op == asm.MULT:
                     self.result = self.op1 * self.op2
                 elif self.op == asm.ADD:
                     self.result = self.op1 + self.op2
@@ -67,12 +67,28 @@ class FunctionalUnit():
         return None
 
     def __str__( self ):
-        out = "FunctionalUnit<{}>".format( asm.name( self.op ) )
+        operands = {
+            asm.MULT : "×",
+            asm.ADD : "+",
+            asm.SUB : "—",
+            asm.DIV : "÷"
+        }
+        if self.is_empty():
+            out = "FU({}) [ ---empty--- ]".format( operands[self.op] )
+        else:
+            out = "FU({}) [ {}{}{}={} | countdown[{}]: {} ]"\
+                .format( operands[self.op],
+                     self.op1,
+                     operands[self.op],
+                     self.op2,
+                     self.result if self.result != None else "??",
+                     self.cycles,
+                     self.countdown )
         return out
 
 if __name__ == '__main__':
     fuADD = FunctionalUnit( asm.ADD )
-    fuMUL = FunctionalUnit( asm.MUL, cycles=3 )
+    fuMUL = FunctionalUnit( asm.MULT, cycles=3 )
     a = 0
     b = 0
     fuADD.feed( 10, 20, a )

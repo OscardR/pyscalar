@@ -14,27 +14,28 @@ class Trap( Exception ):
         Exception.__init__( self, msg )
 
 class Instruction:
-    def __init__( self, codop=asm.NOP, ra=None, rb=None, rc=None ):
+    def __init__( self, codop=asm.NOP, dest=None, op1=None, op2=None ):
         self.codop = codop
-        self.ra = ra
-        self.rb = rb
-        self.rc = rc
+        self.dest = dest
+        self.op1 = op1
+        self.op2 = op2
 
     def __repr__( self ):
-        op = asm.name( self.codop )
-        ra = reg.name( self.ra )
-        rb = reg.name( self.rb )
-        rc = reg.name( self.rc )
-        return "Instruction({}, {}, {}, {})".format( op, ra, rb, rc )
+        return "Instruction({}, {}, {}, {})"\
+            .format( 
+                    asm.name( self.codop ),
+                    reg.name( self.dest ),
+                    reg.name( self.op1 ),
+                    reg.name( self.op2 ) )
 
     def __str__( self ):
-        op = self.codop
-        ra = reg.name( self.ra ) if self.ra != None else u'\u2014'
-        rb = reg.name( self.rb ) if self.rb != None else u'\u2014'
-        rc = reg.name( self.rc ) if self.rc != None else u'\u2014'
-        return u"{:<4}\t{:<4}\t{:<4}\t{:>4}".format( op, rc, ra, rb ).encode( 'utf-8' )
+        op1 = reg.name( self.op1 ) if self.op1 != None else u'\u2014'
+        op2 = reg.name( self.op2 ) if self.op2 != None else u'\u2014'
+        dest = reg.name( self.dest ) if self.dest != None else u'\u2014'
+        return u"{:<4}\t{:<4}\t{:<4}\t{:>4}"\
+            .format( self.codop, dest, op1, op2 ).encode( 'utf-8' )
 
 if __name__ == '__main__':
-    i = Instruction( asm.ADDI, reg.r1, 1000, reg.r0 )
+    i = Instruction( asm.ADDI, reg.r0, reg.r1, 1000 )
     print i
     print repr( i )

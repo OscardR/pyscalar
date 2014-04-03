@@ -15,6 +15,11 @@ import re
 l = Log( "Programmer" )
 
 class Programmer:
+    """
+    Helper class to read assembler code from a file and insert the instructions
+    to the instructions memory
+    """
+
     def __init__( self, memory ):
         self.memory = memory
 
@@ -24,23 +29,38 @@ class Programmer:
 
     def insert_instruction( self, instruction_line ):
         try:
-            # Instrucciones aritméticas
-            op, rc, ra, rb = re.split( ',? ', instruction_line.strip() )
+            # Arithmetical instructions
+            codop, dest, op1, op2 = re.split( ',? ', instruction_line.strip() )
         except ValueError:
             try:
-                # Instrucciones de memoria
-                op, rc, rb, ra = re.split( ',? |\(', re.sub( '\)', '', instruction_line.strip() ) )
+                # Memory access instructions
+                codop, dest, op2, op1 = re.split( ',? |\(', re.sub( '\)', '', instruction_line.strip() ) )
             except ValueError:
-                # Instrucciones NOP y TRAP
-                op, rc, ra, rb = instruction_line.strip(), None, None, None
+                # NOP & TRAP instructions
+                codop, dest, op1, op2 = instruction_line.strip(), None, None, None
+
         # Find values for opcode and regs
-        op = asm.__dict__[op.upper()]
-        if op != asm.TRAP:
-            rc = reg.__dict__[rc.lower()]
-            if op not in [asm.ADDI, asm.MULI, asm.SUBI]:
-                rb = reg.__dict__[rb.lower()]
-            ra = reg.__dict__[ra.lower()]
-        # Create instruction and insert in memory
-        inst = Instruction( op, ra, rb, rc )
+        codop = asm.__dict__[codop.upper()]
+
+        # If operation code is not a TRAP...
+        if codop != asm.TRAP:
+
+            # ...get destination register
+            dest = reg.__dict__[dest.lower()]
+
+            # If operation code is not for immediate values calculation...
+            if codop not in [asm.ADDI, asm.MULTI, asm.SUBI, asm.LW, asm.SW]:
+
+                # ...get 2nd operator
+                op2 = reg.__dict__[op2.lower()]
+
+            # Get 1st operator
+            op1 = reg.__dict__[op1.lower()]
+
+        # Create instruction...
+        inst = Instruction( codop, dest, op1, op2 )
+
+        # ...and insert in memory
         self.memory.insert_instruction( inst )
-        l.d( "Insert: {inst}".format( **locals() ), "Programmer" )
+
+        l.d( "Insert: {}".format( inst ), "Programmer" )

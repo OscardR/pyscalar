@@ -46,9 +46,9 @@ class IF( Stage ):
             inst = self.imem.fetch_instruction( self.cpu.PC )
 
             # ...and push it into the Instructions Buffer
-            self.ib.queue_instruction( inst )
+            self.ib.push_instruction( inst )
 
-            l.d( "[ PC|{:>2} ] {}".format( self.cpu.PC, inst ), "IF/{}".format( _ ) )
+            l.d( "[ PC {:>2} ] {}".format( self.cpu.PC, inst ), "IF/{}".format( _ ) )
 
             # Increment PC
             self.cpu.increment_PC()
@@ -70,63 +70,58 @@ class ID( Stage ):
 
     def execute( self ):
         for _ in range( self.S ):
-            n_inst, inst = self.ib.fetch_instruction()
+            # If the Instruction Window has free slots
+            if not self.iw.is_full():
+                n_inst, inst = self.ib.pop_instruction()
 
-            l.d( inst, "ID/{}".format( _ ) )
-            # If no instruction is available, iterate
-            if inst == None: break
+                l.d( inst, "ID/{}".format( _ ) )
+                # If no instruction is available, iterate
+                if inst == None: break
 
-            # Extract OP code and destination register
-            ( codop, dest ) = inst.codop, inst.rc
+                # Extract OP code and destination register
+                ( codop, dest ) = inst.codop, inst.dest
 
-            # Check the instruction is not a TRAP or NOP
-            if codop not in [asm.TRAP, asm.NOP]:
+                # Check the instruction is not a TRAP or NOP
+                if codop not in [asm.TRAP, asm.NOP]:
 
-                # Add dest register to the ReorderBuffer
-                rob_pos = self.rob.insert_line( \
-                    n_inst=n_inst, \
-                    dest=dest, \
-                    value=self.regs[dest], \
-                    ok=self.regs.check_ok( dest ) )
+                    # Add dest register to the ReorderBuffer
+                    self.rob.insert_line( \
+                        n_inst=n_inst, \
+                        dest=dest, \
+                        value=self.regs[dest], \
+                        ok=self.regs.check_ok( dest ) )
 
-                # Invalidate dest reg on the registers bank
-                self.regs.invalidate( dest )
+                    # Invalidate dest reg on the registers bank
+                    self.regs.invalidate( dest )
 
-                # Get ROB line where operand A can be retrieved from
-                # Or else retrieve it from the registers bank
-                if self.regs[inst.ra] == None:
-                    i = self.rob.get_last_index( inst.ra )
-                    op1 = self.rob[ i ].value
-                    ok1 = self.rob[ i ].ok
-                else:
-                    op1 = self.regs[inst.ra]
-                    ok1 = True
-
-                # If OP code is not an inmediate type, get ROB line for
-                # operand B as well
-                if codop not in [asm.MULI, asm.ADDI, asm.DIVI, asm.SUBI]:
-                    if self.regs[inst.rb] == None:
-                        i = self.rob.get_last_index( inst.rb )
-                        op2 = self.rob[ i ].value
-                        ok2 = self.rob[ i ].ok
+                    # Get ROB line where operand 1 can be retrieved from
+                    # Or else retrieve it from the registers bank
+                    if self.regs[inst.op1] == None:
+                        i = self.rob.get_last_index( inst.op1 )
+                        op1 = self.rob[ i ].value
+                        ok1 = self.rob[ i ].ok
                     else:
-                        op2 = self.regs[inst.rb]
-                        ok2 = True
+                        op1 = self.regs[inst.op1]
+                        ok1 = True
 
-                # Insert instruction into the Instructions Window
-                success = self.iw.insert_instruction( codop, dest, op1, ok1, op2, ok2 )
+                    # If OP code is not an inmediate type, get ROB line for
+                    # operand 2 as well
+                    if codop not in [asm.MULTI, asm.ADDI, asm.DIVI, asm.SUBI, asm.LW, asm.SW]:
+                        if self.regs[inst.op2] == None:
+                            i = self.rob.get_last_index( inst.op2 )
+                            op2 = self.rob[ i ].value
+                            ok2 = self.rob[ i ].ok
+                        else:
+                            op2 = self.regs[inst.op2]
+                            ok2 = True
+                    else:
+                        op2, ok2 = inst.op2, True
 
-                # If the insertion is successful, flush that instruction from the IB
-                if success:
-                    self.ib.flush_instruction()
+                    # Insert instruction into the Instructions Window
+                    self.iw.insert_instruction( codop, dest, op1, ok1, op2, ok2 )
                 else:
-                    # If the Instructions Window is full, undo ROB lines
-                    self.rob.clear_line( rob_pos )
-
-            else:
-                if codop == asm.TRAP:
-                    if self.iw.insert_instruction( codop ):
-                        self.ib.flush_instruction()
+                    if codop == asm.TRAP:
+                        raise Trap( "TRAP on Stage ID" )
 
 class ISS( Stage ):
     """
@@ -144,7 +139,8 @@ class ISS( Stage ):
     def execute( self ):
         # S-scalar processors issue S instructions per cycle
         issued = 0
-        while issued < self.S:
+        possible = self.S
+        while issued < self.S and possible > 0:
             pos, inst = self.iw.next_ready_instruction()
             l.d( "{}".format( inst ), "ISS/{}".format( issued ) )
 
@@ -154,24 +150,24 @@ class ISS( Stage ):
 
             # Do nothing if it's a TRAP instruction
             elif inst.codop == asm.TRAP:
-                l.d( "TRAP", "ISS" )
-                raise Trap( "End of program" )
-                pass
+                raise Trap( "TRAP on Stage ISS" )
 
-            # If it's a multiplication or division,
-            # push it to the multiplication functional units
-            elif inst.codop in [asm.MUL, asm.MULI, asm.DIV, asm.DIVI]:
-                if self.fu[asm.MUL].is_empty():
-                    self.fu[asm.MUL].feed( inst.ra, inst.rb, inst.rc )
-                    self.iw.flush( pos )
+            # If it's a MULTtiplication or division,
+            # push it to the MULTtiplication functional units
+            elif inst.codop in [asm.MULT, asm.MULTI, asm.DIV, asm.DIVI]:
+                if self.fu[asm.MULT].is_empty():
+                    self.fu[asm.MULT].feed( inst.op1, inst.op2, inst.dest )
+                    self.iw.flush_instruction( pos )
                     issued += 1
 
             # Same for addition and substraction
             elif inst.codop in [asm.ADD, asm.ADDI, asm.SUB, asm.SUBI]:
                 if self.fu[asm.ADD].is_empty():
-                    self.fu[asm.ADD].feed( inst.ra, inst.rb, inst.rc )
-                    self.iw.flush( pos )
+                    self.fu[asm.ADD].feed( inst.op1, inst.op2, inst.dest )
+                    self.iw.flush_instruction( pos )
                     issued += 1
+
+            possible -= 1
 
 class ALU( Stage ):
     """
@@ -238,6 +234,7 @@ class WB( Stage ):
                 else:
                     rob_line.set_value( fu.get_result() )
                 rob_line.set_ok()
+                l.d( "[ {} ] <completed>".format( fu ), "WB" )
 
 class COM( Stage ):
     """
@@ -254,3 +251,4 @@ class COM( Stage ):
     def execute( self ):
         for line in self.rob.flush_finished():
             self.regs[line.dest] = line.value
+            l.d( "[ ROB{:>2} ] reg: {} = {} / OK!".format( line.index, reg.name( line.dest ), line.value ), "COM" )

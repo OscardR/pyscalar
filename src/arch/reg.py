@@ -41,7 +41,7 @@ class Registers( dict ):
     def __init__( self, *args, **kw ):
         super( Registers, self ).__init__( *args, **kw )
         self.itemlist = [ r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, zero ]
-        for r in self.itemlist: self[r] = 0
+        for r in self.itemlist: self[r] = r
 
     def __getitem__( self, key ):
         if key not in self.itemlist:

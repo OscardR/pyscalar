@@ -30,10 +30,10 @@ class CPU:
         self.iw = InstructionWindow( iw_size )
         self.regs = Registers()
         self.fu = {
-            asm.MUL : FunctionalUnit( asm.MUL ),
+            asm.MULT : FunctionalUnit( asm.MULT ),
             asm.ADD : FunctionalUnit( asm.ADD ) }
         self.PC = 0x00
-        
+
         # CPU parameters
         self.N = N
         self.S = S
@@ -50,13 +50,30 @@ class CPU:
         self.stages = [if_st, id_st, iss_st, alu_st, mem_st, wb_st, com_st ]
 
     def run( self ):
+        # Initialize the Trap count, to stop when every stage has raised Trap
+        self.trap_count = 0
+        self.cycle = 0
+
         # Loop through instructions, then through stages in reverse
         while True:
             try:
+                l.v( self.cycle, "Cycle" )
                 for stage in reversed( self.stages ):
                     stage.execute()
-            except Trap:
+            except Trap as trap_ex:
+                l.e( trap_ex, "Trap" )
+                self.trap_count += 1
+                if self.trap_count >= 2:
+                    break
+                else:
+                    continue
+            except KeyboardInterrupt as kb_int:
+                l.e( kb_int )
                 break
+            finally:
+                self.cycle += 1
+                try: raw_input()
+                except KeyboardInterrupt: break
 
     def increment_PC( self ):
         self.PC += 1

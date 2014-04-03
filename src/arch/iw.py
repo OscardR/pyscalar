@@ -22,15 +22,16 @@ class InstructionWindowLine:
     def __str__( self ):
         return "{:>6} | {:>4} | {:>4} | {:>3} | {:>4} | {:>3}".format( 
             self.codop,
-            self.dest if self.dest != None else '—',
-            self.op1 if self.op1 != None else '—',
+            self.dest if self.dest != None else "-",
+            self.op1 if self.op1 != None else "-",
             self.ok1,
-            self.op2 if self.op2 != None else '—',
+            self.op2 if self.op2 != None else "-",
             self.ok2 )
 
 class InstructionWindow:
     def __init__( self, n=10 ):
         self.size = n
+        self.full = False
         self.lines = [None] * self.size
 
     def insert_instruction( self, codop=asm.NOP, dest=None, op1=None, ok1=False, op2=None, ok2=False ):
@@ -45,11 +46,16 @@ class InstructionWindow:
     def next_ready_instruction( self ):
         # Find an instruction ready to be issued
         for pos, inst_line in enumerate( self.lines ):
-            if inst_line != None and inst_line.ok1 and inst_line.ok2:
+            if inst_line != None and \
+                ( ( inst_line.ok1 and inst_line.ok2 ) or \
+                  inst_line.codop == asm.TRAP ):
                 return pos, Instruction( inst_line.codop, inst_line.dest, inst_line.op1, inst_line.op2 )
         return None, None
 
-    def flush( self, pos ):
+    def is_full( self ):
+        return None not in self.lines
+
+    def flush_instruction( self, pos ):
         self.lines[pos] = None
 
     def __str__( self ):

@@ -39,7 +39,7 @@ class ROBLine:
         self.flag = new_flag
 
     def __str__( self ):
-        return "{:>5} | {:>5} | {:>5} | {:>5} | {:>5} | {:1}"\
+        return "{:>5} | {:>5} | {:>5} | {:>5} | {:>5} | {:5}"\
             .format( "I" + str( self.n_inst ), \
                      self.dest, \
                      self.value, \
@@ -142,8 +142,10 @@ class ReorderBuffer:
 
     def __str__( self ):
         out = log.make_title( "ReorderBuffer [{}]".format( self.size ) )
+        out += "       [ {:>5} ¦ {:>5} ¦ {:>5} ¦ {:>5} ¦ {:>5} ¦ {:5} ]\n"\
+            .format( "NI", "DEST", "VAL", "OK", "LAST", "FLAG" )
         for i, line in enumerate( self.lines ):
-            out += "[ {:>02} ] {:^41}{}{}\n"\
+            out += "[ {:>02} ] [ {:^45} ]{}{}\n"\
                 .format( i, \
                          line if line != None else "--- empty ---", \
                          " <H>" if i == self.head else "", \
