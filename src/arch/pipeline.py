@@ -9,6 +9,7 @@ Created on 08/03/2014
 from app.log import Log
 from datastructures import asm
 from datastructures.instruction import Trap
+from arch import rob, reg
 
 l = Log( "pipeline" )
 
@@ -88,8 +89,8 @@ class ID( Stage ):
                     self.rob.insert_line( \
                         n_inst=n_inst, \
                         dest=dest, \
-                        value=self.regs[dest], \
-                        ok=self.regs.check_ok( dest ) )
+                        value=None, \
+                        ok=False )
 
                     # Invalidate dest reg on the registers bank
                     self.regs.invalidate( dest )
@@ -98,7 +99,10 @@ class ID( Stage ):
                     # Or else retrieve it from the registers bank
                     if self.regs[inst.op1] == None:
                         i = self.rob.get_last_index( inst.op1 )
-                        op1 = self.rob[ i ].value
+                        if self.rob[i].ok:
+                            op1 = self.rob[ i ].value
+                        else:
+                            op1 = i
                         ok1 = self.rob[ i ].ok
                     else:
                         op1 = self.regs[inst.op1]
@@ -109,7 +113,10 @@ class ID( Stage ):
                     if codop not in [asm.MULTI, asm.ADDI, asm.DIVI, asm.SUBI, asm.LW, asm.SW]:
                         if self.regs[inst.op2] == None:
                             i = self.rob.get_last_index( inst.op2 )
-                            op2 = self.rob[ i ].value
+                            if self.rob[i].ok:
+                                op2 = self.rob[ i ].value
+                            else:
+                                op2 = i
                             ok2 = self.rob[ i ].ok
                         else:
                             op2 = self.regs[inst.op2]
@@ -118,8 +125,10 @@ class ID( Stage ):
                         op2, ok2 = inst.op2, True
 
                     # Insert instruction into the Instructions Window
-                    self.iw.insert_instruction( codop, dest, op1, ok1, op2, ok2 )
+                    l.d( "Insertamos: {n_inst}, {codop}, {dest}, {op1}, {ok1}, {op2}, {ok2}".format( **locals() ) , "ID/IW" )
+                    self.iw.insert_instruction( n_inst, codop, dest, op1, ok1, op2, ok2 )
                 else:
+                    # First trap check
                     if codop == asm.TRAP:
                         raise Trap( "TRAP on Stage ID" )
 
@@ -135,39 +144,43 @@ class ISS( Stage ):
         self.S = self.cpu.S
         self.iw = self.cpu.iw
         self.fu = self.cpu.fu
+        self.rob = self.cpu.rob
 
     def execute( self ):
+
         # S-scalar processors issue S instructions per cycle
         issued = 0
         possible = self.S
         while issued < self.S and possible > 0:
-            pos, inst = self.iw.next_ready_instruction()
-            l.d( "{}".format( inst ), "ISS/{}".format( issued ) )
+            pos, n_inst, inst = self.iw.next_ready_instruction()
+            l.d( "I{}: {}".format( n_inst, inst ), "ISS/{}".format( issued ) )
 
             # If no instructions are ready, abort stage
             if inst == None:
                 break
 
-            # Do nothing if it's a TRAP instruction
-            elif inst.codop == asm.TRAP:
-                raise Trap( "TRAP on Stage ISS" )
-
             # If it's a MULTtiplication or division,
             # push it to the MULTtiplication functional units
             elif inst.codop in [asm.MULT, asm.MULTI, asm.DIV, asm.DIVI]:
                 if self.fu[asm.MULT].is_empty():
-                    self.fu[asm.MULT].feed( inst.op1, inst.op2, inst.dest )
+                    self.fu[asm.MULT].feed( inst.op1, inst.op2, inst.dest, n_inst )
+                    self.rob.get_instruction( n_inst ).set_flag( rob.ISSUED )
                     self.iw.flush_instruction( pos )
                     issued += 1
 
             # Same for addition and substraction
-            elif inst.codop in [asm.ADD, asm.ADDI, asm.SUB, asm.SUBI]:
+            elif inst.codop in [asm.ADD, asm.ADDI, asm.SUB, asm.SUBI, asm.LW, asm.SW]:
                 if self.fu[asm.ADD].is_empty():
-                    self.fu[asm.ADD].feed( inst.op1, inst.op2, inst.dest )
+                    self.fu[asm.ADD].feed( inst.op1, inst.op2, inst.dest, n_inst )
+                    self.rob.get_instruction( n_inst ).set_flag( rob.ISSUED )
                     self.iw.flush_instruction( pos )
                     issued += 1
 
             possible -= 1
+            
+        # Always check trapping
+        if self.cpu.has_trapped():
+            raise Trap( "TRAP on Stage ISS" )
 
 class ALU( Stage ):
     """
@@ -178,16 +191,24 @@ class ALU( Stage ):
     def __init__( self, cpu ):
         super( ALU, self ).__init__( "ALU", cpu )
         self.fu = self.cpu.fu
+        self.rob = self.cpu.rob
 
     def execute( self ):
+        
         # Every Functional Unit moves forward one step
         for t in self.fu:
             fu = self.fu[t]
             if fu.is_empty():
-                l.d( "[ {}/- ] <empty>".format( fu ), "ALU" )
+                l.d( fu, "ALU" )
                 continue
-            step = fu.step()
-            l.d( "[ {}/{} ] ROB:{}".format( fu, step, fu.dest ), "ALU" )
+            else:
+                self.rob.get_instruction( fu.n_inst ).set_flag( rob.EXECUTING )
+                fu.step()
+                l.d( "{} ROB: [{}]".format( fu, fu.dest ), "ALU" )
+
+        # Always check trapping
+        if self.cpu.has_trapped():
+            raise Trap( "TRAP on Stage ALU" )
 
 class MEM( Stage ):
     """
@@ -200,16 +221,22 @@ class MEM( Stage ):
         super( MEM, self ).__init__( "MEM", cpu )
         self.mem = self.cpu.dmem
         self.fu = self.cpu.fu
+        self.rob = self.cpu.rob
 
     def execute( self ):
         # Every Functional Unit which has completed execution writes results to Mem
         for t in self.fu:
             fu = self.fu[t]
             if fu.is_completed():
-                if fu.op == asm.SW:
+                if fu.codop == asm.SW:
                     self.mem[fu.get_result()] = self.rob[ fu.dest ].value
-                l.d( "[ {} ] <completed>".format( fu ), "MEM" )
+                    self.rob.get_instruction( fu.n_inst ).set_flag( rob.FINISHED )
+                l.d( "{} <completed>".format( fu ), "MEM" )
 
+        # Always check trapping
+        if self.cpu.has_trapped():
+            raise Trap( "TRAP on Stage MEM" )
+        
 class WB( Stage ):
     """
     WB Stage
@@ -221,6 +248,7 @@ class WB( Stage ):
         super( WB, self ).__init__( "WB", cpu )
         self.rob = self.cpu.rob
         self.fu = self.cpu.fu
+        self.iw = self.cpu.iw
 
     def execute( self ):
         # Every Functional Unit's result is harvested (from the FU or Mem) and
@@ -228,14 +256,36 @@ class WB( Stage ):
         for t in self.fu:
             fu = self.fu[t]
             if fu.is_completed():
-                rob_line = self.rob[ fu.dest ]
-                if fu.op == asm.LW:
+                rob_line = self.rob.get_instruction( fu.n_inst )
+                if fu.codop == asm.LW:
                     rob_line.set_value( self.mem[fu.get_result()] )
                 else:
                     rob_line.set_value( fu.get_result() )
                 rob_line.set_ok()
-                l.d( "[ {} ] <completed>".format( fu ), "WB" )
+                rob_line.set_flag( rob.FINISHED )
 
+                # Buscamos lineas en la IW que necesiten el dato
+                iw_lines = self.iw.get_blocked_instructions( rob_line.index )
+                # if iw_lines != None:
+                for iw_line in iw_lines:
+                    l.d( "Encontrada: {}".format( iw_line ), "WB/IW" )
+                    if  iw_line.op1 == rob_line.index:
+                        iw_line.op1 = rob_line.value
+                        iw_line.ok1 = True
+                        l.d( "OP1 <- OK!".format( iw_line ), "WB/IW" )
+                    if not iw_line.ok2 and iw_line.op2 == rob_line.index:
+                        iw_line.op2 = rob_line.value
+                        iw_line.ok2 = True
+                        l.d( "OP2 <- OK!".format( iw_line ), "WB/IW" )
+                    l.d( "Modificada: {}".format( iw_line ), "WB/IW" )
+
+                l.d( rob_line, "WB/ROB" )
+                l.d( "{} <completed>".format( fu ), "WB" )
+
+        # Always check trapping
+        if self.cpu.has_trapped():
+            raise Trap( "TRAP on Stage WB" )
+        
 class COM( Stage ):
     """
     COM Stage
@@ -249,6 +299,11 @@ class COM( Stage ):
         self.rob = self.cpu.rob
 
     def execute( self ):
+        
         for line in self.rob.flush_finished():
             self.regs[line.dest] = line.value
             l.d( "[ ROB{:>2} ] reg: {} = {} / OK!".format( line.index, reg.name( line.dest ), line.value ), "COM" )
+
+        # Always check trapping
+        if self.cpu.has_trapped():
+            raise Trap( "TRAP on Stage COM" )

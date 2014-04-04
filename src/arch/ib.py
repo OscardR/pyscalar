@@ -44,6 +44,11 @@ class InstructionBuffer():
         self.inst_count += 1
         return n_inst, inst
 
+    def is_empty( self ):
+        for inst in self.instructions:
+            if inst != None: return False
+        return True
+
     def _update_ins_pos( self ):
         self.ins_pos += 1
         self.ins_pos %= self.size
@@ -65,12 +70,12 @@ if __name__ == '__main__':
     ib = InstructionBuffer( 4 )
     ib.push_instruction( Instruction( asm.ADD, reg.r0, reg.r1, reg.r2 ) )
     ib.push_instruction( Instruction( asm.ADDI, reg.r3, reg.r4, reg.r5 ) )
-    ib.push_instruction( Instruction( asm.MUL, reg.r6, reg.r7, reg.r8 ) )
-    ib.push_instruction( Instruction( asm.MULI, reg.r9, reg.r10, reg.r11 ) )
+    ib.push_instruction( Instruction( asm.MULT, reg.r6, reg.r7, reg.r8 ) )
+    ib.push_instruction( Instruction( asm.MULTI, reg.r9, reg.r10, reg.r11 ) )
     print ib
     for i in range( 6 ):
         print ib.pop_instruction()
-    ib.push_instruction( Instruction( asm.MULI, reg.r9, reg.r10, reg.r11 ) )
+    ib.push_instruction( Instruction( asm.MULTI, reg.r9, reg.r10, reg.r11 ) )
     print ib
     for i in range( 6 ):
         print ib.pop_instruction()

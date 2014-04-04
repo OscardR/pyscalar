@@ -88,6 +88,12 @@ class ReorderBuffer:
         # Return false if insertion not possible
         return False
 
+    def get_instruction( self, n_inst ):
+        for line in self.lines:
+            if line != None and line.n_inst == n_inst:
+                return line
+        return None
+
     def get_last_index( self, reg ):
         for line in self.lines:
             if line.dest == reg and line.last:
@@ -139,6 +145,11 @@ class ReorderBuffer:
         # Correct full state
         if self.full:
             self.full = False
+
+    def is_empty( self ):
+        for line in self.lines:
+            if line != None: return False
+        return True
 
     def __str__( self ):
         out = log.make_title( "ReorderBuffer [{}]".format( self.size ) )

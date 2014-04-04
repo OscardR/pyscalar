@@ -15,22 +15,24 @@ class FunctionalUnit():
     Computes operations
     """
 
-    def __init__( self, op=asm.ADD, cycles=1 ):
-        self.op = op
+    def __init__( self, codop=asm.ADD, cycles=1 ):
+        self.codop = codop
         self.op1 = None
         self.op2 = None
         self.dest = None
+        self.n_inst = None
         self.available = True
         self.completed = False
         self.result = None
         self.cycles = cycles
         self.countdown = cycles
 
-    def feed( self, op1, op2, dest ):
+    def feed( self, op1, op2, dest, n_inst ):
         if self.available:
-            self.op1 = op1
-            self.op2 = op2
+            self.op1 = int( op1 )
+            self.op2 = int( op2 )
             self.dest = dest
+            self.n_inst = n_inst
             self.countdown = self.cycles
             self.available = False
             self.completed = False
@@ -40,13 +42,13 @@ class FunctionalUnit():
             self.op2 != None and not self.completed:
             self.countdown -= 1
             if self.countdown == 0:
-                if self.op == asm.MULT:
+                if self.codop == asm.MULT:
                     self.result = self.op1 * self.op2
-                elif self.op == asm.ADD:
+                elif self.codop == asm.ADD:
                     self.result = self.op1 + self.op2
-                elif self.op == asm.SUB:
+                elif self.codop == asm.SUB:
                     self.result = self.op1 - self.op2
-                elif self.op == asm.DIV:
+                elif self.codop == asm.DIV:
                     self.result = self.op1 / self.op2
                 self.completed = True
         return self.countdown
@@ -63,6 +65,7 @@ class FunctionalUnit():
     def get_result( self ):
         if self.completed:
             self.available = True
+            self.completed = False
             return self.result
         return None
 
@@ -74,16 +77,17 @@ class FunctionalUnit():
             asm.DIV : "÷"
         }
         if self.is_empty():
-            out = "FU({}) [ ---empty--- ]".format( operands[self.op] )
+            out = "FU({}) [ ---empty--- ]".format( operands[self.codop] )
         else:
-            out = "FU({}) [ {}{}{}={} | countdown[{}]: {} ]"\
-                .format( operands[self.op],
-                     self.op1,
-                     operands[self.op],
-                     self.op2,
-                     self.result if self.result != None else "??",
-                     self.cycles,
-                     self.countdown )
+            out = "FU({}) [I{}] [ {}{}{}={} | countdown({}): {} ]"\
+                .format( operands[self.codop],
+                    self.n_inst,
+                    self.op1,
+                    operands[self.codop],
+                    self.op2,
+                    self.result if self.result != None else "??",
+                    self.cycles,
+                    self.countdown )
         return out
 
 if __name__ == '__main__':
@@ -91,13 +95,13 @@ if __name__ == '__main__':
     fuMUL = FunctionalUnit( asm.MULT, cycles=3 )
     a = 0
     b = 0
-    fuADD.feed( 10, 20, a )
-    fuMUL.feed( 12, 12, b )
+    fuADD.feed( 10, 20, a, 1 )
+    fuMUL.feed( 12, 12, b, 2 )
     all_finished = False
     while not all_finished:
         for fu in [fuADD, fuMUL]:
             if not fu.is_completed():
                 fu.step()
-            print "{}, step: {}".format( fu, fu.countdown )
-            print "{}, result: {}".format( fu, fu.get_result() )
-        all_finished = fuADD.is_completed() and fuMUL.is_completed()
+            print fu
+            result = fu.get_result()
+        all_finished = fuADD.is_empty() and fuMUL.is_empty()

@@ -19,6 +19,7 @@ from datastructures import asm
 from datastructures.instruction import Trap
 
 l = Log( "CPU" )
+STEP_BY_STEP = False
 
 class CPU:
     def __init__( self, mem_size=256, iw_size=10, rob_size=10, N=8, S=2 ):
@@ -59,21 +60,29 @@ class CPU:
             try:
                 l.v( self.cycle, "Cycle" )
                 for stage in reversed( self.stages ):
-                    stage.execute()
-            except Trap as trap_ex:
-                l.e( trap_ex, "Trap" )
-                self.trap_count += 1
-                if self.trap_count >= 2:
-                    break
-                else:
-                    continue
+                    try:
+                        stage.execute()
+                    except Trap as trap_ex:
+                        l.e( trap_ex, "Trap" )
+                        self.trap_count += 1
+                if self.trap_count >= len( self.stages ) - 1:
+                    if self.ib.is_empty() \
+                        and self.rob.is_empty() \
+                        and self.iw.is_empty():
+                        break
             except KeyboardInterrupt as kb_int:
                 l.e( kb_int )
                 break
             finally:
                 self.cycle += 1
-                try: raw_input()
-                except KeyboardInterrupt: break
+                try:
+                    if STEP_BY_STEP:
+                        raw_input()
+                except KeyboardInterrupt:
+                    break
+
+    def has_trapped( self ):
+        return self.trap_count > 0
 
     def increment_PC( self ):
         self.PC += 1
