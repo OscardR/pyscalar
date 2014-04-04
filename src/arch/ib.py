@@ -60,7 +60,7 @@ class InstructionBuffer():
     def __str__( self ):
         out = log.make_title( "InstructionBuffer" )
         for i, inst in enumerate( self.instructions ):
-            out += "[ {:>2} ] {:>4} | {} ]\n".format( i, i + self.inst_count, inst )
+            out += "[ {:>2} ] {:>4} | {} ]\n".format( i, i + self.inst_count, inst if inst != None else "---empty---" )
         return out
 
 if __name__ == '__main__':

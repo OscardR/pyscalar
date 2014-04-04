@@ -12,7 +12,7 @@ from arch import reg
 from app.log import Log
 import re
 
-l = Log( "Programmer" )
+l = Log( "programmer" )
 
 class Programmer:
     """
@@ -63,4 +63,4 @@ class Programmer:
         # ...and insert in memory
         self.memory.insert_instruction( inst )
 
-        l.d( "[ {} ] >> IMEM".format( inst ), "Programmer" )
+        l.d( "[ {} ] >> IMEM".format( inst ), "insert_instruction" )

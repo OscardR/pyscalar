@@ -10,36 +10,64 @@ Created on 03/04/2014
 from arch.cpu import CPU
 from programmer import Programmer
 from log import Log
+import defaults as DEF
+
 import os
+import sys
 import inspect
 
 # Init logging
-l = Log( "PyScalar" )
+l = Log( "pyscalar" )
 
 class PyScalar:
+    def __init__( self, code=DEF.ASM_CODE, mem_size=DEF.MEM_SIZE, iw_size=DEF.IW_SIZE, rob_size=DEF.ROB_SIZE, S=DEF.ROB_SIZE ):
+        self.code = code
+        self.mem_size = mem_size
+        self.iw_size = iw_size
+        self.rob_size = rob_size
+        self.S = S
+
     def run( self ):
-        l.v( "Iniciando ejecución", "main" )
+        l.v( "Iniciando ejecución", "run" )
 
         # Create CPU
-        cpu = CPU()
+        cpu = CPU( mem_size=self.mem_size, iw_size=self.iw_size, rob_size=self.rob_size, S=self.S )
 
         # Create Programmer
         prog = Programmer( cpu.imem )
 
         # Load program in Instruction Memory
-        prog.program( os.path.dirname( os.path.abspath( inspect.getfile( inspect.currentframe() ) ) ) + '/code.asm' )
+        prog.program( os.path.dirname( os.path.abspath( inspect.getfile( inspect.currentframe() ) ) ) + '/' + self.code )
 
         # Start CPU
         cpu.run()
 
-        # Debug architecture status
-        print cpu.imem
-        print cpu.dmem
-        print cpu.ib
-        print cpu.iw
-        print cpu.regs
-        print cpu.rob
+        # Print architecture status
+        l.v( cpu.imem, "run" )
+        l.v( cpu.dmem, "run" )
+        l.v( cpu.ib, "run" )
+        l.v( cpu.iw, "run" )
+        l.v( cpu.regs, "run" )
+        l.v( cpu.rob, "run" )
         for unit in cpu.fu:
-            print cpu.fu[unit]
+            l.v( cpu.fu[unit], "run" )
 
-        l.v( "Fin de la ejecución", "main" )
+        l.v( "Fin de la ejecución", "run" )
+
+if __name__ == '__main__':
+
+    # Code to load and execute
+    asm_code = DEF.ASM_CODE
+
+    # Scalarity factor
+    s = DEF.S
+
+    num_args = len( sys.argv )
+    if num_args >= 2:
+        asm_code = sys.argv[1]
+        if num_args > 2:
+            s = int( sys.argv[2] )
+
+    # Init PyScalar Sim with current parameters
+    pyscalar = PyScalar( code=asm_code, S=s )
+    pyscalar.run()

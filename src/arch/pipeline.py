@@ -19,7 +19,7 @@ class Stage( object ):
     """
     def __init__( self, name, cpu ):
         self.name = name
-        l.v( "Stage %s initialized!" % name, "Stage" )
+        l.d( "[%s] initialized!" % name, "Stage" )
         self.cpu = cpu
 
     def execute( self ):
