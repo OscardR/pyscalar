@@ -85,6 +85,7 @@ class CPU:
         return self.trap_count > 0
 
     def increment_PC( self ):
+        l.v( self.PC, "PC" )
         self.PC += 1
 
 if __name__ == '__main__':

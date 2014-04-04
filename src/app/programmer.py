@@ -63,4 +63,4 @@ class Programmer:
         # ...and insert in memory
         self.memory.insert_instruction( inst )
 
-        l.d( "Insert: {}".format( inst ), "Programmer" )
+        l.d( "[ {} ] >> IMEM".format( inst ), "Programmer" )
