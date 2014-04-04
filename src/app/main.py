@@ -16,6 +16,9 @@ from pyscalar import PyScalar
 # Init our web application, this is just about the most basic setup
 render = render_jinja( '.', encoding='utf-8' )
 urls = ( '/', 'Index' )
+
+# Init app and web app
+app = PyScalar()
 webapp = web.application( urls, globals() )
 
 class Index:
@@ -24,8 +27,10 @@ class Index:
         return render.main( title='PyScalar' )
 
 application = webapp.wsgifunc()
+WEB_ENABLED = True
 
 if __name__ == '__main__':
-    app = PyScalar()
-    app.run()
-    # webapp.run()
+    if WEB_ENABLED:
+        webapp.run()
+    else:
+        app.run()

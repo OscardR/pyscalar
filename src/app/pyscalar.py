@@ -20,7 +20,7 @@ import inspect
 l = Log( "pyscalar" )
 
 class PyScalar:
-    def __init__( self, code=DEF.ASM_CODE, mem_size=DEF.MEM_SIZE, iw_size=DEF.IW_SIZE, rob_size=DEF.ROB_SIZE, S=DEF.ROB_SIZE ):
+    def __init__( self, code=DEF.ASM_CODE, mem_size=DEF.MEM_SIZE, iw_size=DEF.IW_SIZE, rob_size=DEF.ROB_SIZE, S=DEF.S ):
         self.code = code
         self.mem_size = mem_size
         self.iw_size = iw_size
