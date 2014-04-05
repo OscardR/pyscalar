@@ -20,7 +20,6 @@ from datastructures import asm
 from datastructures.instruction import Trap
 
 l = Log( "cpu" )
-STEP_BY_STEP = True
 
 class CPU:
     def __init__( self, mem_size=DEF.MEM_SIZE, iw_size=DEF.IW_SIZE, rob_size=DEF.ROB_SIZE, S=DEF.S ):
@@ -51,7 +50,14 @@ class CPU:
 
         self.stages = [if_st, id_st, iss_st, alu_st, mem_st, wb_st, com_st ]
 
-    def run( self ):
+    def run(self):
+        self.start()
+        
+        # Loop through instructions, then through stages in reverse
+        while self.running:
+            self.step()
+            
+    def start( self ):
         # Initialize the Trap count, to stop when every stage has raised Trap
         self.trap_count = 0
 
@@ -61,57 +67,56 @@ class CPU:
         # Control flag
         self.running = True
 
-        # Loop through instructions, then through stages in reverse
-        while self.running:
-            try:
-                # Log cycle #
-                l.v( self.cycle, "Cycle" )
+    def step(self, steps=1):
+        try:
+            # Log cycle #
+            l.v( self.cycle, "Cycle" )
 
-                # Iterate stages, from last to first
-                for stage in reversed( self.stages ):
+            # Iterate stages, from last to first
+            for stage in reversed( self.stages ):
 
-                    # Execute stage...
-                    try:
-                        stage.execute()
-                    # ...capturing TRAP
-                    except Trap as trap_ex:
-
-                        # Log trap
-                        l.e( trap_ex, "Trap" )
-
-                        # Increment trap count
-                        self.trap_count += 1
-
-                # Check whether all stages have propagated trap...
-                if self.trap_count >= len( self.stages ) - 1:
-
-                    # ...and then make sure pipeline is finished
-                    if self.ib.is_empty() \
-                        and self.rob.is_empty() \
-                        and self.iw.is_empty():
-
-                        # then finish execution
-                        self.finish()
-
-            # Check for keyboard interruption every cycle...
-            except KeyboardInterrupt as kb_int:
-
-                # ...log it...
-                l.e( kb_int )
-
-                # ...then cancel execution
-                self.finish( cancelled=True )
-
-            # Always increment cycle and check for step by step flag
-            finally:
-                self.cycle += 1
+                # Execute stage...
                 try:
-                    # If execution step by step is set, wait for key...
-                    if STEP_BY_STEP:
-                        raw_input()
-                # ...and stop execution on Ctrl+C
-                except KeyboardInterrupt:
-                    self.finish( cancelled=True )
+                    stage.execute()
+                # ...capturing TRAP
+                except Trap as trap_ex:
+
+                    # Log trap
+                    l.e( trap_ex, "Trap" )
+
+                    # Increment trap count
+                    self.trap_count += 1
+
+            # Check whether all stages have propagated trap...
+            if self.trap_count >= len( self.stages ) - 1:
+
+                # ...and then make sure pipeline is finished
+                if self.ib.is_empty() \
+                    and self.rob.is_empty() \
+                    and self.iw.is_empty():
+
+                    # then finish execution
+                    self.finish()
+
+        # Check for keyboard interruption every cycle...
+        except KeyboardInterrupt as kb_int:
+
+            # ...log it...
+            l.e( kb_int )
+
+            # ...then cancel execution
+            self.finish( cancelled=True )
+
+        # Always increment cycle and check for step by step flag
+        finally:
+            self.cycle += 1
+            try:
+                # If execution step by step is set, wait for key...
+                if DEF.STEP_BY_STEP:
+                    raw_input()
+            # ...and stop execution on Ctrl+C
+            except KeyboardInterrupt:
+                self.finish( cancelled=True )
 
     def finish( self, cancelled=False ):
         if cancelled:

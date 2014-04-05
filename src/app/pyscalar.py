@@ -27,32 +27,41 @@ class PyScalar:
         self.rob_size = rob_size
         self.S = S
 
-    def run( self ):
+    def start( self ):
         l.v( "Iniciando ejecución", "run" )
 
         # Create CPU
-        cpu = CPU( mem_size=self.mem_size, iw_size=self.iw_size, rob_size=self.rob_size, S=self.S )
+        self.cpu = CPU( mem_size=self.mem_size, iw_size=self.iw_size, rob_size=self.rob_size, S=self.S )
 
         # Create Programmer
-        prog = Programmer( cpu.imem )
+        self.prog = Programmer( self.cpu.imem )
 
         # Load program in Instruction Memory
-        prog.program( os.path.dirname( os.path.abspath( inspect.getfile( inspect.currentframe() ) ) ) + '/' + self.code )
+        self.prog.program( os.path.dirname( os.path.abspath( inspect.getfile( inspect.currentframe() ) ) ) + '/' + self.code )
 
         # Start CPU
-        cpu.run()
+        self.cpu.start()
 
+    def run( self ):
+        self.start()
+        self.cpu.run()
+        self.finish()
+
+    def finish( self ):
         # Print architecture status
-        l.v( cpu.imem, "run" )
-        l.v( cpu.dmem, "run" )
-        l.v( cpu.ib, "run" )
-        l.v( cpu.iw, "run" )
-        l.v( cpu.regs, "run" )
-        l.v( cpu.rob, "run" )
-        for unit in cpu.fu:
-            l.v( cpu.fu[unit], "run" )
+        l.v( self.cpu.imem, "run" )
+        l.v( self.cpu.dmem, "run" )
+        l.v( self.cpu.ib, "run" )
+        l.v( self.cpu.iw, "run" )
+        l.v( self.cpu.regs, "run" )
+        l.v( self.cpu.rob, "run" )
+        for unit in self.cpu.fu:
+            l.v( self.cpu.fu[unit], "run" )
 
         l.v( "Fin de la ejecución", "run" )
+
+    def step( self, steps=1 ):
+        self.cpu.step( steps )
 
 if __name__ == '__main__':
 

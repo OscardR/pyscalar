@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>{{title}}</title>
+</head>
+<body>
+	<h1>PyScalar</h1>
+	<h2>Superscalar Processor Simulator</h2>
+	<p>Escalaridad: {{def.S}}</p>
+	<form action="step" method="get">
+		<label for="steps">Pasos: <input type="text" value="1"
+			name="steps" /></label> <label for="submit"><input type="submit"
+			value="Step" name="submit" /><input type="submit" value="Run"
+			name="submit" /></label>
+	</form>
+	<pre>{{app.cpu.ib}}</pre>
+	<pre>{{app.cpu.iw}}</pre>
+	<pre>{{app.cpu.dmem}}</pre>
+	<pre>{{app.cpu.regs}}</pre>
+	<pre>{{app.cpu.rob}}</pre>
+</body>
+</html>
