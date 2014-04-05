@@ -11,7 +11,7 @@ import web
 from web.contrib.template import render_jinja
 
 # Import PyScalar app
-from pyscalar import PyScalar
+from app.pyscalar import PyScalar
 import app.defaults as DEF
 
 # Init our web application, this is just about the most basic setup

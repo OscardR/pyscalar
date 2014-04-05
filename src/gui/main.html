@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <title>{{title}}</title>
+<link rel="stylesheet" href="static/css/bootstrap.min.css" />
+<script src="static/js/bootstrap.min.js"></script>
 </head>
 <body>
 	<h1>PyScalar</h1>
@@ -11,9 +13,13 @@
 	<form action="step" method="get">
 		<label for="steps">Pasos: <input type="text" value="1"
 			name="steps" /></label> <label for="submit"><input type="submit"
-			value="Step" name="submit" /><input type="submit" value="Run"
+			value="Step" name="submit" /></label>
+	</form>
+	<form action="run">
+		<label for="submit"><input type="submit" value="Run"
 			name="submit" /></label>
 	</form>
+	{% include 'rob.html' %}
 	<pre>{{app.cpu.ib}}</pre>
 	<pre>{{app.cpu.iw}}</pre>
 	<pre>{{app.cpu.dmem}}</pre>
