@@ -21,6 +21,7 @@ class ROBLine:
         self.index = index
         self.n_inst = n_inst
         self.dest = dest
+        self.dest_name = reg.name(dest)
         self.value = value
         self.ok = ok
         self.last = last
@@ -41,7 +42,7 @@ class ROBLine:
     def __str__( self ):
         return "{:>5} | {:>5} | {:>5} | {:>5} | {:>5} | {:5}"\
             .format( "I" + str( self.n_inst ), \
-                     self.dest, \
+                     reg.name( self.dest ), \
                      self.value, \
                      self.ok, \
                      self.last, \
