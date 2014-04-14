@@ -8,6 +8,7 @@ Created on 07/03/2014
 
 from datastructures import asm
 from datastructures.instruction import Instruction
+from arch import reg
 import app.log as log
 
 class InstructionWindowLine:
@@ -15,6 +16,7 @@ class InstructionWindowLine:
         self.n_inst = n_inst
         self.codop = codop
         self.dest = dest
+        self.dest_name = reg.name( self.dest )
         self.op1 = op1
         self.ok1 = ok1
         self.op2 = op2
@@ -86,5 +88,5 @@ class InstructionWindow:
         return out
 
 if __name__ == '__main__':
-    iwl = InstructionWindowLine()
+    iwl = InstructionWindowLine( 1 )
     print iwl

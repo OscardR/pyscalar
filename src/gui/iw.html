@@ -1,0 +1,34 @@
+<div class="panel panel-primary">
+	<div class="panel-heading">Instructions Window</div>
+	<table class="table table-striped table-bordered table-condensed">
+		<thead>
+			<tr>
+				<th>#</th>
+				<th>CODOP</th>
+				<th>DEST</th>
+				<th>OP1</th>
+				<th>OK1</th>
+				<th>OP2</th>
+				<th>OK2</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for line in app.cpu.iw.lines %} {% if line != None and not
+			line.ok1 and not line.ok2 %}
+			<tr class="danger">{% elif line.ok1 and line.ok2 %}
+			<tr class="success">{% else %}
+			<tr>
+				{% endif %}
+				<td>{% if line != None %}I{{line.n_inst}}{% else %}&nbsp;{%
+					endif %}</td>
+				<td>{{line.codop}}</td>
+				<td>{{line.dest_name}}</td>
+				<td>{{line.op1}}</td>
+				<td>{{line.ok1}}</td>
+				<td>{{line.op2}}</td>
+				<td>{{line.ok2}}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>

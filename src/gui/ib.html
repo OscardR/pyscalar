@@ -1,0 +1,26 @@
+<div class="panel panel-primary">
+	<div class="panel-heading">Instructions Buffer</div>
+	<table class="table table-striped table-bordered table-condensed">
+		<thead>
+			<tr>
+				<th>#</th>
+				<th>CODOP</th>
+				<th>DEST</th>
+				<th>OP1</th>
+				<th>OP2</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for inst in app.cpu.ib.instructions %}
+			<tr>
+				<td>{% if inst != None %}{{loop.index}}{% else %}&nbsp;{% endif
+					%}</td>
+				<td>{{inst.codop}}</td>
+				<td>{{inst.dest}}</td>
+				<td>{{inst.op1}}</td>
+				<td>{{inst.op2}}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>

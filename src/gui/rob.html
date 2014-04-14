@@ -1,27 +1,32 @@
-<table class="table table-striped table-bordered">
-	<caption>Reorder Buffer</caption>
-	<thead>
-		<tr>
-			<th>#</th>
-			<th>NI</th>
-			<th>DEST</th>
-			<th>VAL</th>
-			<th>OK</th>
-			<th>LAST</th>
-			<th>FLAG</th>
-		</tr>
-	</thead>
-	<tbody>
-		{% for line in app.cpu.rob.lines %}
-		<tr>
-			<td>{{loop.index}}</td>
-			<td>{{line.n_inst}}</td>
-			<td>{{line.dest_name}}</td>
-			<td>{{line.value}}</td>
-			<td>{{line.ok}}</td>
-			<td>{{line.last}}</td>
-			<td>{{line.flag}}</td>
-		</tr>
-		{% endfor %}
-	</tbody>
-</table>
+<div class="panel panel-primary">
+	<div class="panel-heading">Reorder Buffer</div>
+	<table class="table table-striped table-bordered table-condensed">
+		<thead>
+			<tr>
+				<th>#</th>
+				<th>NI</th>
+				<th>DEST</th>
+				<th>VAL</th>
+				<th>OK</th>
+				<th>LAST</th>
+				<th>FLAG</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for line in app.cpu.rob.lines %} {% if line.flag == "x" %}
+			<tr class="warning">{% elif line.flag == "f" %}
+			<tr class="success">{% else %}
+			<tr>
+				{% endif %}
+				<td>{{loop.index}}</td>
+				<td>{{line.n_inst}}</td>
+				<td>{{line.dest_name}}</td>
+				<td>{{line.value}}</td>
+				<td>{{line.ok}}</td>
+				<td>{{line.last}}</td>
+				<td>{{line.flag}}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>

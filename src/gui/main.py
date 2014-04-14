@@ -17,39 +17,48 @@ import app.defaults as DEF
 # Init our web application, this is just about the most basic setup
 render = render_jinja( '../gui', encoding='utf-8' )
 urls = ( '/', 'Start',
+         '/code', 'Code',
          '/step', 'Step',
-         '/run', 'Run' )
+         '/run', 'Run',
+         '/reset', 'Start' )
 
 # Init app and web app
 app = PyScalar()
 webapp = web.application( urls, globals() )
 
-class Start:
+class Default:
+    def GET( self ):
+        template_data = {
+            'title' : DEF.APP_NAME,
+            'app' : app,
+            'def' : DEF }
+        return render.main( template_data )
+
+class Code( Default ):
+    def POST( self ):
+        f = web.input( codefile={} )
+        web.debug( f['codefile'].filename )  # This is the filename
+        web.debug( f['codefile'].value )  # This is the file contents
+        web.debug( f['codefile'].file.read() )  # Or use a file(-like) object
+
+        # app = PyScalar(code='')
+        app.start()
+        return Default.GET( self )
+
+class Start( Default ):
     def GET( self ):
         app.start()
-        template_data = {
-            'title' : DEF.APP_NAME,
-            'app' : app,
-            'def' : DEF }
-        return render.main( template_data )
+        return Default.GET( self )
 
-class Step:
+class Step( Default ):
     def GET( self ):
         app.step( web.input().steps )
-        template_data = {
-            'title' : DEF.APP_NAME,
-            'app' : app,
-            'def' : DEF }
-        return render.main( template_data )
+        return Default.GET( self )
 
-class Run:
+class Run( Default ):
     def GET( self ):
         app.run()
-        template_data = {
-            'title' : DEF.APP_NAME,
-            'app' : app,
-            'def' : DEF }
-        return render.main( template_data )
+        return Default.GET( self )
 
 application = webapp.wsgifunc()
 
