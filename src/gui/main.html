@@ -27,13 +27,12 @@
 		</div>
 	</header>
 	<div class="container">
-		<form class="form form-inline" method="get"
-			enctype="multipart/form-data">
+		<form class="form form-inline" enctype="multipart/form-data">
 			<div class="row">
 				<div class="col-md-6">
 					<div class="form-group">
-						<label for="codefile">ASM Code: </label> <input type="file"
-							id="codefile">
+						<label for="codefile">ASM Code: <input type="file"
+							id="codefile" name="codefile"> </label>
 						<p class="help-block">Upload assembly code.</p>
 					</div>
 					<button type="submit" class="btn btn-primary" id="code-button"
@@ -47,15 +46,15 @@
 							name="steps" /></label>
 					</div>
 					<button type="submit" class="btn btn-primary" name="step"
-						formaction="step">
+						formaction="step" formmethod="get">
 						Step <i class="glyphicon glyphicon-step-forward"></i>
 					</button>
 					<button type="submit" class="btn btn-success" name="run"
-						formaction="run">
+						formaction="run" formmethod="get">
 						Run <i class="glyphicon glyphicon-play"></i>
 					</button>
 					<button type="submit" class="btn btn-danger" name="reset"
-						formaction="reset">
+						formaction="reset" formmethod="get">
 						Reset <i class="glyphicon glyphicon-repeat"></i>
 					</button>
 				</div>

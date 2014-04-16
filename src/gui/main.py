@@ -36,12 +36,11 @@ class Default:
 
 class Code( Default ):
     def POST( self ):
-        f = web.input( codefile={} )
-        web.debug( f['codefile'].filename )  # This is the filename
-        web.debug( f['codefile'].value )  # This is the file contents
-        web.debug( f['codefile'].file.read() )  # Or use a file(-like) object
-
-        # app = PyScalar(code='')
+        f = web.input().codefile
+        web.debug( f )
+        codefile = open( "tmp.asm", "w" )
+        codefile.write( f )
+        app = PyScalar( "../gui/tmp.asm" )
         app.start()
         return Default.GET( self )
 
