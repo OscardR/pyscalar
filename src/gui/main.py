@@ -34,7 +34,7 @@ class Default:
             'def' : DEF }
         return render.main( template_data )
 
-class Code( Default ):
+class Code:
     def POST( self ):
         f = web.input().codefile
         web.debug( f )
@@ -42,22 +42,22 @@ class Code( Default ):
         codefile.write( f )
         app = PyScalar( "../gui/tmp.asm" )
         app.start()
-        return Default.GET( self )
+        return Default().GET()
 
-class Start( Default ):
+class Start:
     def GET( self ):
         app.start()
-        return Default.GET( self )
+        return Default().GET()
 
-class Step( Default ):
+class Step:
     def GET( self ):
         app.step( web.input().steps )
-        return Default.GET( self )
+        return Default().GET()
 
-class Run( Default ):
+class Run:
     def GET( self ):
         app.run()
-        return Default.GET( self )
+        return Default().GET()
 
 application = webapp.wsgifunc()
 
