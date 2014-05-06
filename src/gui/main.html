@@ -73,15 +73,8 @@
 		</div>
 		<div class="row">
 			<div class="col-md-4">{% include 'ib.html' %}</div>
-			<div class="col-md-4">
-				<div class="panel panel-primary">
-					<div class="panel-heading">Data Memory</div>
-					<pre>{{app.cpu.dmem}}</pre>
-				</div>
-			</div>
-			<div class="col-md-4">
-				<pre>{{app.cpu.regs}}</pre>
-			</div>
+			<div class="col-md-4">{% include 'dmem.html' %}</div>
+			<div class="col-md-4">{% include 'regs.html' %}</div>
 		</div>
 	</div>
 
