@@ -1,1 +1,1 @@
-__all__ = ['main', 'log', 'programmer']
+__all__ = ["pyscalar", "log", "programmer", "defaults"]

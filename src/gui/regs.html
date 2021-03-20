@@ -2,7 +2,7 @@
 	<div class="panel-heading">Registers</div>
 	<table class="table table-striped table-bordered table-condensed">
 		<tbody>
-			{% for value in app.cpu.regs %} 
+			{% for value in app.cpu.regs %}
 			{% if (loop.index-1) % 4 == 0 %}
 			<tr>
 			{% endif %}

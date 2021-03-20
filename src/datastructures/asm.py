@@ -6,25 +6,27 @@ Created on 07/03/2014
 @author: Óscar Gómez <oscar.gomez@uji.es>
 """
 
-NOP = 'nop'
-ADD = 'add'
-SUB = 'sub'
-MULT = 'mult'
-DIV = 'div'
-ADDI = 'addi'
-SUBI = 'subi'
-MULTI = 'multi'
-DIVI = 'divi'
-AND = 'and'
-OR = 'or'
-XOR = 'xor'
-NAND = 'nand'
-TRAP = 'trap'
-LW = 'lw'
-SW = 'sw'
+NOP = "nop"
+ADD = "add"
+SUB = "sub"
+MULT = "mult"
+DIV = "div"
+ADDI = "addi"
+SUBI = "subi"
+MULTI = "multi"
+DIVI = "divi"
+AND = "and"
+OR = "or"
+XOR = "xor"
+NAND = "nand"
+TRAP = "trap"
+LW = "lw"
+SW = "sw"
 
-def name( codop ):
+
+def name(codop):
     l = None
     for l in globals():
-        if globals()[l] == codop and l != 'codop': return l
-    return "{}".format( codop )
+        if globals()[l] == codop and l != "codop":
+            return l
+    return "{}".format(codop)

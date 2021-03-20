@@ -1,1 +1,1 @@
-__all__ = ['instruction','asm']
+__all__ = ["instruction", "asm"]
